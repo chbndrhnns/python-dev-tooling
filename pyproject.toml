@@ -1,0 +1,78 @@
+[project]
+name = "ruff-uv-playground"
+version = "0.1.0"
+description = "A playground for experimenting with ruff and uv"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx>=0.27",
+    "rich>=13.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.9",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+
+ignore = [
+    # ── Formatter conflicts (ruff format owns these) ──────────────────────
+    "COM812",  # missing-trailing-comma        — formatter handles this
+    "COM819",  # prohibited-trailing-comma     — formatter handles this
+    "ISC001",  # single-line-implicit-str-concat — formatter handles this
+    "W191",    # indentation-contains-tabs     — formatter handles this
+    "E501",    # line-too-long                 — formatter makes best effort
+
+    # ── Docstring convention: keep one side of each conflicting pair ──────
+    "D203",    # one-blank-line-before-class   → keep D211 (no blank line)
+    "D213",    # multi-line-summary-second-line → keep D212 (first line)
+
+    # ── Annotations: too noisy for demo/playground code ───────────────────
+    "ANN",     # all flake8-annotations rules
+
+    # ── Copyright & stub file rules: not applicable ───────────────────────
+    "CPY001",  # missing-copyright-notice
+    "PYI",     # all .pyi stub-file rules
+
+    # ── Playground-friendly suppressions ─────────────────────────────────
+    "T201",    # print()  — we intentionally print in examples
+    "S101",    # assert   — fine in tests
+    "INP001",  # implicit namespace package — no __init__.py needed
+    "FIX002",  # line-contains-TODO — TODOs are welcome in the messy file
+    "TD002",   # missing-todo-author — too strict for solo projects
+    "TD003",   # missing-todo-link   — too strict for solo projects
+
+    # ── Missing module/package docstrings — demo files don't need them ────
+    "D100",    # missing-docstring-in-public-module
+    "D104",    # missing-docstring-in-public-package
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ruff_uv_playground"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"   # aligns with D212 (first-line summary)
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 8
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=src --cov-report=term-missing"
