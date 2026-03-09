@@ -7,121 +7,104 @@ Fmt:  uv run ruff format src/messy.py
 Each section is labelled with the ruff rule categories it triggers.
 """
 
-# ── F: Pyflakes ───────────────────────────────────────────────────────────────
-import os          # F401 — imported but unused (after we shadow it below)
+import os
 import sys
-import os          # F811 — redefinition of unused 'os' from import
-import math, json  # E401 — multiple imports on one line
-from os.path import (join, exists, dirname, basename)  # F401 — some unused
+import os
+import math, json
+from os.path import (join, exists, dirname, basename)
 
-# ── I: isort — imports out of order ──────────────────────────────────────────
 import datetime
 import collections
 import re
 
-# ── UP: pyupgrade — old-style Python patterns ────────────────────────────────
-from typing import Dict, List, Optional, Tuple, Union   # UP035 — use built-ins
+from typing import Dict, List, Optional, Tuple, Union
 
-# ── E/W: pycodestyle ─────────────────────────────────────────────────────────
-x=1+2           # E225 — missing whitespace around operator
-y = [1,2,3]     # E231 — missing whitespace after ','
-z = {  'a': 1  }  # E201/E202 — whitespace inside braces
+x=1+2           
+y = [1,2,3]     
+z = {  'a': 1  }
 
 
-# ── N: pep8-naming ────────────────────────────────────────────────────────────
-class bad_class_name:          # N801 — class name should be CapWords
+class bad_class_name:          
     """A badly named class."""
 
-    WRONG_constant = 42        # N803 — constant should be UPPER_CASE (if meant as one)
-    # N815 — mixedCase variable in class scope
+    WRONG_constant = 42        
     myMixedCaseAttr = "oops"
 
-    def BadMethodName(self):   # N802 — method name should be lowercase
+    def BadMethodName(self):   
         """Bad method name."""
         return self.myMixedCaseAttr
 
-    def __init__(Self):        # N803 — argument 'Self' should be lowercase 'self'
+    def __init__(Self):        
         """Init."""
         Self.value = 0
 
 
-# ── B: flake8-bugbear ─────────────────────────────────────────────────────────
-def mutable_default(items: list = []) -> list:  # B006 — mutable default argument
+def mutable_default(items: list = []) -> list:
     """Append and return."""
     items.append(1)
     return items
 
 
 def loop_variable_closure() -> list:
-    """B023 — loop variable used in lambda inside loop."""
     funcs = []
     for i in range(5):
-        funcs.append(lambda: i)  # B023 — captures loop var by reference
+        funcs.append(lambda: i) 
     return funcs
 
 
 def broad_exception() -> None:
-    """B001/BLE001 — blind except clause."""
     try:
         result = 1 / 0
-    except:             # E722/BLE001 — bare except
+    except:           
         pass
     try:
-        result = 1 / 0  # noqa: F841
-    except Exception:   # BLE001 — too broad
+        result = 1 / 0  
+    except Exception: 
         pass
 
 
-# ── C4: flake8-comprehensions ─────────────────────────────────────────────────
 def comprehension_smells() -> None:
     """Unnecessary use of list/dict/set calls."""
-    _ = list([1, 2, 3])             # C411 — unnecessary list()
-    _ = dict({"a": 1})              # C418 — unnecessary dict()
-    _ = set([x for x in range(5)])  # C401 — set() around a list comprehension → use set comprehension
-    _ = list(x for x in range(5))   # C400 — generator inside list() → use list comprehension
+    _ = list([1, 2, 3])             
+    _ = dict({"a": 1})              
+    _ = set([x for x in range(5)])  
+    _ = list(x for x in range(5))   
     _ = [i for i in [1, 2, 3] if i]  # fine, but next one isn't:
-    _ = dict([(k, k * 2) for k in range(5)])  # C416 — unnecessary dict comprehension
+    _ = dict([(k, k * 2) for k in range(5)])
 
 
-# ── SIM: flake8-simplify ──────────────────────────────────────────────────────
-def simplify_me(flag: bool, value: Optional[int]) -> str:  # UP007 → int | None
+def simplify_me(flag: bool, value: Optional[int]) -> str:
     """Could be simplified."""
-    # SIM108 — ternary instead of if/else
     if flag:
         result = "yes"
     else:
         result = "no"
 
-    # SIM102 — nested if → single if with and
     if flag:
         if value is not None:
             print("both true")
 
-    # SIM105 — use contextlib.suppress instead of try/except/pass
     try:
         int("not a number")
     except ValueError:
         pass
 
-    # SIM118 — use `key in dict` instead of `key in dict.keys()`
     d = {"a": 1}
-    if "a" in d.keys():  # SIM118
+    if "a" in d.keys():
         print("found")
 
-    return result  # noqa: F821 — result might be unbound (it's not, but demo)
+    return result
 
 
-# ── RET: flake8-return ────────────────────────────────────────────────────────
-def return_mess(x: int) -> Optional[int]:  # UP007
+def return_mess(x: int) -> Optional[int]:
     """Return statement issues."""
     if x > 0:
         return x
-    else:              # RET505 — superfluous else after return
-        return None    # RET501 — explicit return None unnecessary
+    else:              
+        return None    
 
 
 def early_return_candidate(items: List[int]) -> bool:  # UP006
-    """RET504 — unnecessary assignment before return."""
     found = False
     for item in items:
         if item > 10:
@@ -130,58 +113,50 @@ def early_return_candidate(items: List[int]) -> bool:  # UP006
     return found
 
 
-# ── TRY: tryceratops ─────────────────────────────────────────────────────────
 def exception_antipatterns(path: str) -> str:
     """Various try/except smells."""
-    # TRY003 — long message in raise
     try:
-        with open(path) as f:  # noqa: PTH123 — PTH flagged separately
+        with open(path) as f:
             return f.read()
     except FileNotFoundError:
-        raise ValueError(  # TRY003 — long inline message; TRY200 — use raise..from
+        raise ValueError( 
             f"Could not open the file at {path!r} — are you sure it exists?"
         )
 
-    # TRY301 — abstract raise to an inner function
     try:
         data = json.loads("{bad}")
     except json.JSONDecodeError as exc:
         raise RuntimeError("parse failed") from exc  # fine, but below is not:
 
-    # EM101 — string literal in exception
-    raise ValueError("something went wrong")  # EM101
+    raise ValueError("something went wrong")
 
 
-# ── PTH: flake8-use-pathlib ───────────────────────────────────────────────────
 def old_path_style(directory: str) -> list:
     """PTH — replace os.path calls with pathlib."""
     files = []
-    for name in os.listdir(directory):          # PTH208
-        full = os.path.join(directory, name)    # PTH118
-        if os.path.isfile(full):                # PTH113
-            files.append(os.path.abspath(full)) # PTH100
+    for name in os.listdir(directory):          
+        full = os.path.join(directory, name)    
+        if os.path.isfile(full):                
+            files.append(os.path.abspath(full)) 
     return files
 
 
-# ── PERF: Perflint — performance anti-patterns ───────────────────────────────
 def perf_issues() -> None:
     """Slow patterns ruff can flag."""
-    # PERF401 — manual list accumulation instead of list comprehension
     result = []
     for i in range(100):
-        result.append(i * 2)  # PERF401
+        result.append(i * 2)
 
-    # PERF203 — try/except in a loop
+
     values = ["1", "2", "bad", "4"]
     parsed = []
     for v in values:
-        try:                   # PERF203
+        try:                  
             parsed.append(int(v))
         except ValueError:
             parsed.append(0)
 
 
-# ── G: flake8-logging-format ─────────────────────────────────────────────────
 import logging
 
 logger = logging.getLogger(__name__)
@@ -189,53 +164,43 @@ logger = logging.getLogger(__name__)
 
 def logging_smells(user: str, count: int) -> None:
     """Bad logging patterns."""
-    # G001/G002 — use % formatting or lazy %, not f-string/str.format
-    logger.info(f"User {user} logged in")             # G004 — f-string in logging
-    logger.warning("Count is: " + str(count))         # G003 — string concat in logging
-    logger.debug("Items: %s" % count)                 # G002 — % operator in log call
-    logger.error("Something broke: {}".format(user))  # G001 — .format() in log call
+    logger.info(f"User {user} logged in")             
+    logger.warning("Count is: " + str(count))         
+    logger.debug("Items: %s" % count)                 
+    logger.error("Something broke: {}".format(user))  
 
 
-# ── ERA: eradicate — commented-out code ──────────────────────────────────────
-# result = some_old_function(x, y)   # ERA001
-# if debug_mode:                     # ERA001
-#     print("DEBUG:", result)        # ERA001
+# result = some_old_function(x, y)  
+# if debug_mode:                    
+#     print("DEBUG:", result)       
 
 
-# ── DTZ: flake8-datetimez ────────────────────────────────────────────────────
 def naive_datetime() -> None:
     """DTZ — always use timezone-aware datetimes."""
-    now = datetime.datetime.now()          # DTZ005 — missing tz=
-    today = datetime.date.today()          # DTZ011
-    utcnow = datetime.datetime.utcnow()    # DTZ003 — deprecated, use now(UTC)
+    now = datetime.datetime.now()          
+    today = datetime.date.today()          
+    utcnow = datetime.datetime.utcnow()    
     _ = now, today, utcnow
 
 
-# ── FLY: flynt — f-string conversion ─────────────────────────────────────────
 def old_string_formatting(name: str, age: int) -> str:
-    """FLY001 — .format() calls that should be f-strings."""
-    return "Hello, {}! You are {} years old.".format(name, age)  # FLY001
+    return "Hello, {}! You are {} years old.".format(name, age)
 
 
-# ── UP: pyupgrade — more old patterns ────────────────────────────────────────
 def type_annotation_old_style(
-    items: Dict[str, List[int]],          # UP006/UP035 — use dict/list
-    mapping: Optional[Dict[str, Union[int, str]]] = None,  # UP007/UP035
-) -> Tuple[int, ...]:                     # UP006/UP035 — use tuple
+    items: Dict[str, List[int]],    
+    mapping: Optional[Dict[str, Union[int, str]]] = None, 
+) -> Tuple[int, ...]:                   
     """Old-style type hints."""
     _ = items, mapping
     return (1, 2, 3)
 
 
-# ── ARG: unused arguments ─────────────────────────────────────────────────────
 def unused_args(keep: int, throw_away: str, also_unused: float) -> int:
-    """ARG001 — unused function arguments."""
     return keep * 2
 
 
-# ── FBT: flake8-boolean-trap ─────────────────────────────────────────────────
-def boolean_trap(data: list, reverse: bool, unique: bool, sort: bool) -> list:  # FBT001/FBT002
-    """FBT — boolean positional arguments are a trap."""
+def boolean_trap(data: list, reverse: bool, unique: bool, sort: bool) -> list:
     if sort:
         data = sorted(data, reverse=reverse)
     if unique:
@@ -244,7 +209,7 @@ def boolean_trap(data: list, reverse: bool, unique: bool, sort: bool) -> list:  
 
 
 # ── C90: mccabe complexity ────────────────────────────────────────────────────
-def overly_complex(a, b, c, d, e, f, g, h):  # PLR0913 — too many args; C901 complexity
+def overly_complex(a, b, c, d, e, f, g, h):
     """This function has cyclomatic complexity > 10."""
     result = 0
     if a:
