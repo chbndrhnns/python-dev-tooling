@@ -1,27 +1,47 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/python
 {
-	"name": "Python 3",
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/python:3-3.12-trixie",
+  "name": "ruff + uv Playground",
+  "image": "mcr.microsoft.com/devcontainers/python:3.12-bullseye",
 
-	// Set environment variables inside the container
-	"containerEnv": {
-		"UV_LINK_MODE": "copy"
-	},
+  "containerEnv": {
+    "UV_LINK_MODE": "copy"
+  },
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+  // Install uv and ruff on container creation
+  "onCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && echo 'export PATH=\"$HOME/.cargo/bin:$PATH\"' >> ~/.bashrc",
+  "postCreateCommand": "source ~/.bashrc && uv sync",
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/root/.cargo/bin"
+  },
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "pip3 install --user -r requirements.txt",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
 
-	// Configure tool-specific properties.
-	// "customizations": {},
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+        "ruff.enable": true,
+        "ruff.lint.enable": true,
+        "python.defaultInterpreterPath": ".venv/bin/python"
+      }
+    }
+  }
 }
