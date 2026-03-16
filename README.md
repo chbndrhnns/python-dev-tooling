@@ -2,7 +2,7 @@
 
 A GitHub Codespaces-ready environment to explore [**ruff**](https://docs.astral.sh/ruff/) (linter + formatter) and [**uv**](https://docs.astral.sh/uv/) (Python package manager) — both from [Astral](https://astral.sh).
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/YOUR_USERNAME/YOUR_REPO)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/chbndrhnns/python-dev-tooling)
 
 ---
 
