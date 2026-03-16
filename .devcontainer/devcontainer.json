@@ -9,12 +9,11 @@
   },
 
   // Install uv and ruff on container creation
-  "onCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && echo 'export PATH=\"$HOME/.cargo/bin:$PATH\"' >> ~/.bashrc",
-  "postStartCommand": ". ~/.bashrc && uv sync && (grep -qxF 'source .venv/bin/activate' ~/.bashrc 2>/dev/null || echo 'source .venv/bin/activate' >> ~/.bashrc) && (grep -qxF '[[ -f ~/.bashrc ]] && source ~/.bashrc' ~/.bash_profile 2>/dev/null || echo '[[ -f ~/.bashrc ]] && source ~/.bashrc' >> ~/.bash_profile)",
-
+  "onCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh",
+  "postStartCommand": "/home/vscode/.local/bin/uv sync",
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/root/.cargo/bin"
-  },
+  "PATH": "${containerWorkspaceFolder}/.venv/bin:/home/vscode/.local/bin:${containerEnv:PATH}"
+},
 
   "features": {
     "ghcr.io/devcontainers/features/git:1": {}
@@ -39,8 +38,7 @@
           }
         },
         "ruff.enable": true,
-        "ruff.lint.enable": true,
-        "python.defaultInterpreterPath": ".venv/bin/python"
+        "ruff.lint.enable": true
       }
     }
   }
