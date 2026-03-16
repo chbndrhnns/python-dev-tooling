@@ -10,7 +10,7 @@
 
   // Install uv and ruff on container creation
   "onCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && echo 'export PATH=\"$HOME/.cargo/bin:$PATH\"' >> ~/.bashrc",
-  "postCreateCommand": "source ~/.bashrc && uv sync",
+  "postCreateCommand": "source ~/.bashrc && uv sync && echo 'source .venv/bin/activate' >> ~/.bashrc",
 
   "remoteEnv": {
     "PATH": "${containerEnv:PATH}:/root/.cargo/bin"
