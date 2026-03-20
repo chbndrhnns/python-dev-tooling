@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Package Managers — Requirements Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0f0f11;
+    --surface:   #17171a;
+    --surface2:  #1e1e23;
+    --border:    rgba(255,255,255,0.08);
+    --border2:   rgba(255,255,255,0.14);
+    --text:      #e8e8ec;
+    --muted:     #7a7a8a;
+    --accent:    #a78bfa;
+
+    --pip-bg:    #1a2436; --pip-border: #2a4a7f; --pip-text: #7ab3f0;
+    --poetry-bg: #1e2a1a; --poetry-border: #3a6632; --poetry-text: #5db348;
+    --uv-bg:     #2a1e36; --uv-border:    #6632a0; --uv-text:    #c084f5;
+    --conda-bg:  #2a2418; --conda-border: #7a5c1a; --conda-text: #f0b84a;
+
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+
+    --good-bg: rgba(74,222,128,0.12); --good-text: #4ade80; --good-border: rgba(74,222,128,0.3);
+    --ok-bg:   rgba(251,191,36,0.12); --ok-text:   #fbbf24; --ok-border:   rgba(251,191,36,0.3);
+    --bad-bg:  rgba(248,113,113,0.12);--bad-text:  #f87171; --bad-border:  rgba(248,113,113,0.3);
+
+    --tooltip-bg: #2a2a32;
+  }
+
+  :root.light {
+    --bg:        #f5f4f0;
+    --surface:   #ffffff;
+    --surface2:  #eeecea;
+    --border:    rgba(0,0,0,0.08);
+    --border2:   rgba(0,0,0,0.14);
+    --text:      #1a1a1f;
+    --muted:     #888890;
+    --accent:    #6d28d9;
+
+    --pip-bg:    #ddeeff; --pip-border: #93c4f6; --pip-text: #1a5fa8;
+    --poetry-bg: #ddf2e0; --poetry-border: #86d49a; --poetry-text: #1a6e30;
+    --uv-bg:     #ede8ff; --uv-border:    #b89af8; --uv-text:    #5b21b6;
+    --conda-bg:  #fef6dc; --conda-border: #f5cc68; --conda-text: #8a5c00;
+
+    --good-bg: rgba(22,163,74,0.1);  --good-text: #15803d; --good-border: rgba(22,163,74,0.3);
+    --ok-bg:   rgba(202,138,4,0.1);  --ok-text:   #a16207; --ok-border:   rgba(202,138,4,0.3);
+    --bad-bg:  rgba(220,38,38,0.1);  --bad-text:  #b91c1c; --bad-border:  rgba(220,38,38,0.3);
+
+    --tooltip-bg: #2a2a32;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── Theme toggle ── */
+  .theme-toggle {
+    flex-shrink: 0;
+    margin-top: 4px;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .theme-toggle:hover { background: var(--surface2); }
+
+  /* ── Header ── */
+  header {
+    max-width: 860px;
+    margin: 0 auto 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  h1 em { font-style: normal; color: var(--muted); }
+  .subtitle {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    max-width: 860px;
+    margin: 0 auto 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch {
+    width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0;
+  }
+
+  /* ── Bank ── */
+  .bank-label {
+    max-width: 860px;
+    margin: 0 auto 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .bank {
+    max-width: 860px;
+    margin: 0 auto 32px;
+    min-height: 64px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1.5px dashed var(--border2);
+    background: var(--surface);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: flex-start;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .bank.over {
+    border-color: var(--accent);
+    background: rgba(167,139,250,0.06);
+  }
+  .bank-empty {
+    font-size: 13px;
+    color: var(--muted);
+    align-self: center;
+    font-style: italic;
+    padding: 4px 0;
+  }
+
+  /* ── Grid ── */
+  .grid {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 400px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .tool-col { display: flex; flex-direction: column; gap: 0; }
+
+  .tool-header {
+    padding: 10px 12px 8px;
+    border-radius: 10px 10px 0 0;
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .tool-name {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .tool-sub {
+    font-size: 11px;
+    opacity: 0.65;
+  }
+
+  .tool-header.pip    { background: var(--pip-bg);    border-color: var(--pip-border);    color: var(--pip-text); }
+  .tool-header.poetry { background: var(--poetry-bg); border-color: var(--poetry-border); color: var(--poetry-text); }
+  .tool-header.uv     { background: var(--uv-bg);     border-color: var(--uv-border);     color: var(--uv-text); }
+  .tool-header.conda  { background: var(--conda-bg);  border-color: var(--conda-border);  color: var(--conda-text); }
+
+  .drop-zone {
+    flex: 1;
+    min-height: 120px;
+    padding: 8px;
+    border-radius: 0 0 10px 10px;
+    border: 1px solid var(--border);
+    border-top: none;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .drop-zone.over {
+    background: var(--surface2);
+    border-color: var(--border2);
+  }
+
+  /* ── Pills ── */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+    cursor: grab;
+    user-select: none;
+    border: 1px solid transparent;
+    transition: opacity 0.15s, transform 0.12s, box-shadow 0.12s;
+    line-height: 1.3;
+    position: relative;
+  }
+  .pill:active  { cursor: grabbing; transform: scale(1.03); }
+  .pill.dragging { opacity: 0.3; }
+  .pill:hover { filter: brightness(1.12); }
+
+  /* tooltip */
+  .pill::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--tooltip-bg);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 400;
+    padding: 7px 10px;
+    border-radius: 7px;
+    white-space: normal;
+    width: 220px;
+    line-height: 1.5;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    text-align: left;
+  }
+  .pill:hover::after { opacity: 1; }
+
+  /* result overlay on pills */
+  .pill .pill-badge {
+    margin-left: 6px;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .pill.result-good { border-color: var(--good-border) !important; }
+  .pill.result-ok   { border-color: var(--ok-border)   !important; }
+  .pill.result-bad  { border-color: var(--bad-border)  !important; }
+
+  /* ── Actions ── */
+  .actions {
+    max-width: 860px;
+    margin: 24px auto 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 9px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .btn:hover   { background: var(--surface2); }
+  .btn:active  { transform: scale(0.97); }
+  .btn.primary {
+    background: var(--accent);
+    color: #1a0f2e;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .btn.primary:hover { background: #bba4fc; }
+
+  /* ── Feedback panel ── */
+  .feedback {
+    max-width: 860px;
+    margin: 28px auto 0;
+    border-radius: 12px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    overflow: hidden;
+    display: none;
+  }
+  .feedback.visible { display: block; }
+
+  .feedback-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .score-num {
+    font-family: var(--font-mono);
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .score-label {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .score-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+  .score-chip {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 6px;
+  }
+  .chip-good { background: var(--good-bg); color: var(--good-text); border: 1px solid var(--good-border); }
+  .chip-ok   { background: var(--ok-bg);   color: var(--ok-text);   border: 1px solid var(--ok-border); }
+  .chip-bad  { background: var(--bad-bg);  color: var(--bad-text);  border: 1px solid var(--bad-border); }
+
+  .feedback-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 0; }
+
+  .fb-tool-section { margin-bottom: 16px; }
+  .fb-tool-section:last-child { margin-bottom: 0; }
+  .fb-tool-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .fb-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    margin-bottom: 6px;
+  }
+  .fb-item:last-child { margin-bottom: 0; }
+  .fb-item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .fb-req-label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .verdict-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .verdict-good { background: var(--good-bg); color: var(--good-text); }
+  .verdict-ok   { background: var(--ok-bg);   color: var(--ok-text); }
+  .verdict-bad  { background: var(--bad-bg);  color: var(--bad-text); }
+  .fb-text {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── Footer ── */
+  footer {
+    max-width: 860px;
+    margin: 48px auto 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0.5;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="eyebrow">Interactive quiz</div>
+      <h1>Python Package Managers<br><em>Requirements &amp; Tradeoffs</em></h1>
+      <p class="subtitle">
+        Drag each requirement into the tool you think handles it best.
+        Hover a pill to see its definition. Hit <strong>Check answers</strong> for detailed feedback.
+      </p>
+    </div>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark theme" aria-label="Toggle theme">
+      <span id="theme-icon">☀️</span>
+    </button>
+  </div>
+</header>
+
+<div class="legend" id="legend"></div>
+
+<div class="bank-label">Requirement bank — drag from here</div>
+<div class="bank" id="bank">
+  <span class="bank-empty" id="bank-empty">All requirements placed — drag back here to return one</span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="actions">
+  <button class="btn primary" onclick="checkAnswers()">Check answers</button>
+  <button class="btn" onclick="resetQuiz()">Reset</button>
+</div>
+
+<div class="feedback" id="feedback">
+  <div class="feedback-header" id="feedback-header"></div>
+  <div class="feedback-body" id="feedback-body"></div>
+</div>
+
+<footer>python-pm-quiz &mdash; drag &amp; drop, no frameworks, no build step</footer>
+
+<script>
+const REQS = [
+  { id:'r1',  label:'Reproducible builds',   dc:'#7ab3f0', lc:'#1a5fa8', bg:'rgba(74,139,220,0.15)',  lbg:'rgba(74,139,220,0.1)',  border:'rgba(74,139,220,0.35)',  lborder:'rgba(74,139,220,0.4)',
+    tip:'Lock file pins every transitive dep to exact versions so two devs get identical envs.' },
+  { id:'r2',  label:'Fast resolution',        dc:'#7ec86a', lc:'#1a6e30', bg:'rgba(100,190,90,0.15)',  lbg:'rgba(60,160,60,0.1)',   border:'rgba(100,190,90,0.35)',  lborder:'rgba(60,160,60,0.4)',
+    tip:'Resolving and installing a large dep tree should take seconds, not minutes.' },
+  { id:'r3',  label:'Non-Python deps',        dc:'#f0b84a', lc:'#8a5c00', bg:'rgba(220,170,50,0.15)',  lbg:'rgba(200,150,0,0.1)',   border:'rgba(220,170,50,0.35)',  lborder:'rgba(200,150,0,0.4)',
+    tip:'Managing C libraries, CUDA, R packages alongside Python packages.' },
+  { id:'r4',  label:'Build isolation',        dc:'#c084f5', lc:'#5b21b6', bg:'rgba(170,90,240,0.15)',  lbg:'rgba(140,60,220,0.1)',  border:'rgba(170,90,240,0.35)',  lborder:'rgba(140,60,220,0.4)',
+    tip:'PEP 517/518: build deps installed in a fresh env, not your global Python.' },
+  { id:'r5',  label:'Dependency groups',      dc:'#f08080', lc:'#b91c1c', bg:'rgba(220,90,90,0.15)',   lbg:'rgba(200,50,50,0.1)',   border:'rgba(220,90,90,0.35)',   lborder:'rgba(200,50,50,0.4)',
+    tip:'Separate dev/test/docs deps that are not shipped to end users.' },
+  { id:'r6',  label:'Version constraints',    dc:'#90c870', lc:'#3a7a10', bg:'rgba(110,180,70,0.15)',  lbg:'rgba(80,160,30,0.1)',   border:'rgba(110,180,70,0.35)',  lborder:'rgba(80,160,30,0.4)',
+    tip:'Expressing "requests >=2.28, <3" and having the resolver honour it.' },
+  { id:'r7',  label:'Env isolation',          dc:'#60a8e0', lc:'#1a5090', bg:'rgba(60,130,210,0.15)',  lbg:'rgba(40,110,200,0.1)',  border:'rgba(60,130,210,0.35)',  lborder:'rgba(40,110,200,0.4)',
+    tip:'Each project gets its own site-packages, not the system Python.' },
+  { id:'r8',  label:'Publishing to PyPI',     dc:'#f090b8', lc:'#9d1e5e', bg:'rgba(210,80,150,0.15)',  lbg:'rgba(190,50,130,0.1)',  border:'rgba(210,80,150,0.35)',  lborder:'rgba(190,50,130,0.4)',
+    tip:'Build a wheel + sdist and upload to PyPI in one workflow.' },
+  { id:'r9',  label:'Conflict detection',     dc:'#f07070', lc:'#991515', bg:'rgba(220,80,80,0.15)',   lbg:'rgba(210,40,40,0.1)',   border:'rgba(220,80,80,0.35)',   lborder:'rgba(210,40,40,0.4)',
+    tip:'Tell the user *why* two packages are incompatible, not just fail silently.' },
+  { id:'r10', label:'Python version mgmt',    dc:'#a090f0', lc:'#4c1d95', bg:'rgba(140,100,230,0.15)', lbg:'rgba(100,60,200,0.1)',  border:'rgba(140,100,230,0.35)', lborder:'rgba(100,60,200,0.4)',
+    tip:'Install and switch between Python 3.11, 3.12, 3.13 without pyenv.' },
+];
+
+const TOOLS = [
+  { id:'pip',    label:'pip + venv',  sub:'the baseline',    cls:'pip' },
+  { id:'poetry', label:'Poetry',      sub:'lock + workflow', cls:'poetry' },
+  { id:'uv',     label:'uv',          sub:'Rust-powered',    cls:'uv' },
+  { id:'conda',  label:'conda',       sub:'data science',    cls:'conda' },
+];
+
+const ANSWERS = {
+  r1:  { good:['poetry','uv'],        ok:['pip'],         bad:['conda'] },
+  r2:  { good:['uv'],                  ok:['pip','conda'], bad:['poetry'] },
+  r3:  { good:['conda'],               ok:[],              bad:['pip','poetry','uv'] },
+  r4:  { good:['uv','poetry'],         ok:['pip'],         bad:['conda'] },
+  r5:  { good:['poetry','uv'],         ok:[],              bad:['pip','conda'] },
+  r6:  { good:['poetry','uv','pip'],   ok:['conda'],       bad:[] },
+  r7:  { good:['uv','poetry'],         ok:['pip'],         bad:['conda'] },
+  r8:  { good:['poetry','uv'],         ok:[],              bad:['pip','conda'] },
+  r9:  { good:['uv','poetry'],         ok:['pip'],         bad:['conda'] },
+  r10: { good:['uv'],                  ok:[],              bad:['pip','poetry','conda'] },
+};
+
+const FEEDBACK = {
+  r1:  { good: "Lock files (poetry.lock / uv.lock) pin every transitive dep. pip has no lock file natively — requirements.txt is manual and often inconsistent.",
+         bad:  "conda environment.yml is reproducible but less precise than a proper lock file." },
+  r2:  { good: "uv's Rust resolver with parallel I/O is 10–100× faster than pip. It caches wheels aggressively.",
+         bad:  "Poetry's resolver is correct but notoriously slow on large trees due to heavy metadata fetching." },
+  r3:  { good: "conda manages its own binary ecosystem (C libs, CUDA, HDF5). pip/uv/Poetry only see Python packages.",
+         bad:  "pip, uv, Poetry have no concept of non-Python deps — you need system package managers alongside them." },
+  r4:  { good: "uv and Poetry implement PEP 517 build isolation by default. pip supports it but requires explicit config.",
+         bad:  "conda doesn't use PEP 517 at all — it builds its own binaries via conda-build." },
+  r5:  { good: "Poetry's dependency groups and uv's (PEP 735) are first-class. pip has no concept of groups.",
+         bad:  "pip has no dependency group concept — you maintain multiple requirements files by hand." },
+  r6:  { good: "All serious tools support PEP 440 version specifiers. Poetry's ^ and ~ syntax adds Cargo-style shorthand.",
+         bad:  "" },
+  r7:  { good: "uv auto-creates venvs; Poetry auto-creates one per project. pip + venv works but you manage it manually.",
+         bad:  "conda's envs are heavier and cross-language — more powerful but not a lightweight venv replacement." },
+  r8:  { good: "Poetry has `poetry publish` and `poetry build` built in. uv added `uv publish` in 0.4. pip has no publish flow.",
+         bad:  "pip has no publish command. conda packages go through Anaconda/conda-forge, a separate infrastructure." },
+  r9:  { good: "uv's PubGrub-inspired resolver reports conflict chains clearly. Poetry also gives readable error messages.",
+         bad:  "conda's conflict messages are famously cryptic and slow to produce." },
+  r10: { good: "uv can install and manage Python versions natively (`uv python install 3.13`) — no pyenv needed.",
+         bad:  "pip, Poetry, and conda all assume Python is already installed; they don't manage Python itself." },
+};
+
+let state = {};
+let dragging = null;
+
+function initState() {
+  state = {};
+  TOOLS.forEach(t => state[t.id] = []);
+}
+
+// ── Render ──────────────────────────────────────────────────────────
+function render() {
+  renderBank();
+  renderGrid();
+}
+
+function renderBank() {
+  const bank = document.getElementById('bank');
+  const empty = document.getElementById('bank-empty');
+  bank.querySelectorAll('.pill').forEach(p => p.remove());
+  const placed = new Set(Object.values(state).flat());
+  const unplaced = REQS.filter(r => !placed.has(r.id));
+  empty.style.display = unplaced.length === 0 ? 'inline' : 'none';
+  unplaced.forEach(r => bank.appendChild(makePill(r)));
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  TOOLS.forEach(t => {
+    const col = document.createElement('div');
+    col.className = 'tool-col';
+
+    const hdr = document.createElement('div');
+    hdr.className = `tool-header ${t.cls}`;
+    hdr.innerHTML = `<span class="tool-name">${t.label}</span><span class="tool-sub">${t.sub}</span>`;
+    col.appendChild(hdr);
+
+    const zone = document.createElement('div');
+    zone.className = 'drop-zone';
+    zone.dataset.tool = t.id;
+    setupDrop(zone);
+    state[t.id].forEach(rid => {
+      const r = REQS.find(x => x.id === rid);
+      zone.appendChild(makePill(r, true));
+    });
+    col.appendChild(zone);
+    grid.appendChild(col);
+  });
+}
+
+// ── Pills ────────────────────────────────────────────────────────────
+function makePill(r, inZone = false) {
+  const el = document.createElement('div');
+  el.className = 'pill';
+  el.dataset.req = r.id;
+  el.draggable = true;
+  const isLight = document.documentElement.classList.contains('light');
+  const color  = isLight ? r.lc     : r.dc;
+  const bg     = isLight ? r.lbg    : r.bg;
+  const border = isLight ? r.lborder: r.border;
+  el.style.cssText = `background:${bg};color:${color};border-color:${border}`;
+  el.setAttribute('data-tip', r.tip);
+  el.style.width = inZone ? '100%' : '';
+  el.textContent = r.label;
+
+  el.addEventListener('dragstart', e => {
+    dragging = r.id;
+    setTimeout(() => el.classList.add('dragging'), 0);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  el.addEventListener('dragend', () => {
+    dragging = null;
+    el.classList.remove('dragging');
+  });
+  // Touch fallback
+  el.addEventListener('touchstart', handleTouchStart, { passive: true });
+  el.addEventListener('touchmove',  handleTouchMove,  { passive: false });
+  el.addEventListener('touchend',   handleTouchEnd);
+  return el;
+}
+
+// ── Drop zones ───────────────────────────────────────────────────────
+function setupDrop(zone) {
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('over');
+    if (!dragging) return;
+    moveReq(dragging, zone.dataset.tool);
+  });
+}
+
+function setupBankDrop() {
+  const bank = document.getElementById('bank');
+  bank.addEventListener('dragover', e => { e.preventDefault(); bank.classList.add('over'); });
+  bank.addEventListener('dragleave', () => bank.classList.remove('over'));
+  bank.addEventListener('drop', e => {
+    e.preventDefault();
+    bank.classList.remove('over');
+    if (!dragging) return;
+    moveReq(dragging, null);
+  });
+}
+
+function moveReq(reqId, toolId) {
+  Object.keys(state).forEach(k => { state[k] = state[k].filter(x => x !== reqId); });
+  if (toolId) state[toolId].push(reqId);
+  document.getElementById('feedback').classList.remove('visible');
+  render();
+}
+
+// ── Touch support ─────────────────────────────────────────────────────
+let touchReqId = null;
+let touchClone  = null;
+
+function handleTouchStart(e) {
+  touchReqId = e.currentTarget.dataset.req;
+  const r = REQS.find(x => x.id === touchReqId);
+  touchClone = makePill(r);
+  touchClone.style.cssText += ';position:fixed;pointer-events:none;z-index:1000;opacity:0.85;width:auto;';
+  document.body.appendChild(touchClone);
+}
+
+function handleTouchMove(e) {
+  e.preventDefault();
+  if (!touchClone) return;
+  const t = e.touches[0];
+  touchClone.style.left = (t.clientX - 60) + 'px';
+  touchClone.style.top  = (t.clientY - 20) + 'px';
+}
+
+function handleTouchEnd(e) {
+  if (!touchClone) return;
+  const t = e.changedTouches[0];
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  touchClone.remove(); touchClone = null;
+  if (!touchReqId) return;
+  const zone = el?.closest('.drop-zone');
+  const bank = el?.closest('.bank');
+  if (zone) moveReq(touchReqId, zone.dataset.tool);
+  else if (bank) moveReq(touchReqId, null);
+  touchReqId = null;
+}
+
+// ── Check answers ─────────────────────────────────────────────────────
+function checkAnswers() {
+  let nGood = 0, nOk = 0, nBad = 0;
+  const toolSections = [];
+
+  TOOLS.forEach(t => {
+    const placed = state[t.id];
+    if (!placed.length) return;
+    const items = placed.map(rid => {
+      const r = REQS.find(x => x.id === rid);
+      const ans = ANSWERS[rid];
+      const fb  = FEEDBACK[rid];
+      let verdict, cls, text;
+      if (ans.good.includes(t.id)) {
+        verdict = 'Great fit'; cls = 'good'; text = fb.good; nGood++;
+      } else if (ans.ok.includes(t.id)) {
+        verdict = 'Partial'; cls = 'ok';
+        text = [fb.good, fb.bad].filter(Boolean).join(' '); nOk++;
+      } else {
+        verdict = 'Poor fit'; cls = 'bad';
+        const better = ans.good.length ? `Better: ${ans.good.join(' or ')}. ` : '';
+        text = better + [fb.bad, fb.good].filter(Boolean).join(' '); nBad++;
+      }
+      return { r, verdict, cls, text };
+    });
+    toolSections.push({ tool: t, items });
+  });
+
+  const total = nGood + nOk + nBad;
+  if (total === 0) { alert('Drag some requirements first!'); return; }
+
+  // Header
+  const hdr = document.getElementById('feedback-header');
+  hdr.innerHTML = `
+    <span class="score-num">${nGood}/${total}</span>
+    <span class="score-label">great fits placed</span>
+    <div class="score-chips">
+      <span class="score-chip chip-good">${nGood} great</span>
+      <span class="score-chip chip-ok">${nOk} partial</span>
+      <span class="score-chip chip-bad">${nBad} poor</span>
+    </div>`;
+
+  // Body
+  const body = document.getElementById('feedback-body');
+  body.innerHTML = toolSections.map(({ tool, items }) => `
+    <div class="fb-tool-section">
+      <div class="fb-tool-name">${tool.label}</div>
+      ${items.map(({ r, verdict, cls, text }) => `
+        <div class="fb-item">
+          <div class="fb-item-top">
+            <span class="fb-req-label" style="color:${document.documentElement.classList.contains('light') ? r.lc : r.dc}">${r.label}</span>
+            <span class="verdict-badge verdict-${cls}">${verdict}</span>
+          </div>
+          ${text ? `<div class="fb-text">${text}</div>` : ''}
+        </div>`).join('')}
+    </div>`).join('');
+
+  document.getElementById('feedback').classList.add('visible');
+  document.getElementById('feedback').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────
+function resetQuiz() {
+  initState();
+  document.getElementById('feedback').classList.remove('visible');
+  render();
+}
+
+// ── Legend ────────────────────────────────────────────────────────────
+function renderLegend() {
+  const isLight = document.documentElement.classList.contains('light');
+  const items = [
+    { color: isLight ? '#1a5fa8' : '#7ab3f0', label:'Installer / resolver' },
+    { color: isLight ? '#1a6e30' : '#7ec86a', label:'Environment manager' },
+    { color: isLight ? '#8a5c00' : '#f0b84a', label:'All-in-one / workflow' },
+    { color: isLight ? '#5b21b6' : '#c084f5', label:'Build / distribution' },
+  ];
+  document.getElementById('legend').innerHTML = items.map(i =>
+    `<div class="legend-item">
+       <span class="legend-swatch" style="background:${i.color}"></span>
+       <span>${i.label}</span>
+     </div>`).join('');
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────
+function applyTheme(light) {
+  document.documentElement.classList.toggle('light', light);
+  document.getElementById('theme-icon').textContent = light ? '🌙' : '☀️';
+  try { localStorage.setItem('pm-quiz-theme', light ? 'light' : 'dark'); } catch(e) {}
+}
+
+function toggleTheme() {
+  applyTheme(!document.documentElement.classList.contains('light'));
+  renderLegend();
+  render();
+}
+
+// Auto-detect on first load
+(function() {
+  let saved;
+  try { saved = localStorage.getItem('pm-quiz-theme'); } catch(e) {}
+  const preferLight = saved ? saved === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches;
+  applyTheme(preferLight);
+})();
+
+// ── Boot ──────────────────────────────────────────────────────────────
+initState();
+renderLegend();
+render();
+setupBankDrop();
+</script>
+</body>
+</html>
