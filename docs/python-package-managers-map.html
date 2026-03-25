@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Package Managers — Landscape Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0f0f11;
+    --surface: #17171a;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text:    #e8e8ec;
+    --muted:   #7a7a8a;
+    --accent:  #a78bfa;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+  :root.light {
+    --bg:      #f5f4f0;
+    --surface: #ffffff;
+    --border:  rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text:    #1a1a1f;
+    --muted:   #888890;
+    --accent:  #6d28d9;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px 60px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: clamp(22px, 3.5vw, 34px);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  h1 em { font-style: normal; color: var(--muted); }
+  .subtitle { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 520px; }
+
+  .theme-toggle {
+    flex-shrink: 0;
+    margin-top: 2px;
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .theme-toggle:hover { background: var(--border2); }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* Map card */
+  .map-card {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 16px;
+    overflow-x: auto;
+  }
+
+  /* SVG tool nodes — clickable */
+  .node { cursor: pointer; }
+  .node rect { transition: filter 0.15s; }
+  .node:hover rect { filter: brightness(1.15); }
+  :root.light .node rect { opacity: 0.76; }
+  :root.light .node:hover rect {
+    opacity: 0.9;
+    filter: brightness(1.03) saturate(0.92);
+  }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    background: #1e1e26;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #e8e8ec;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.55;
+    padding: 9px 13px;
+    border-radius: 9px;
+    max-width: 260px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s;
+    z-index: 200;
+    white-space: normal;
+  }
+  #tooltip.visible { opacity: 1; }
+  #tooltip strong { color: #a78bfa; font-weight: 500; display: block; margin-bottom: 3px; }
+
+  footer {
+    margin-top: 32px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    opacity: 0.45;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div>
+      <div class="eyebrow">Reference map</div>
+      <h1>Python Package Managers<br><em>Landscape &amp; Timeline</em></h1>
+      <p class="subtitle">Hover any tool to learn what it does. Tools are grouped by era and colour-coded by layer.</p>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+      <span id="theme-icon">☀️</span>
+    </button>
+  </header>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="map-card">
+    <svg id="map" width="100%" viewBox="0 0 860 540" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Era bands -->
+      <rect x="10"  y="42" width="190" height="466" rx="10" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+      <rect x="215" y="42" width="190" height="466" rx="10" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+      <rect x="420" y="42" width="210" height="466" rx="10" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+      <rect x="645" y="42" width="205" height="466" rx="10" fill="rgba(255,255,255,0.025)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+
+      <!-- Era labels -->
+      <text x="105" y="30" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="rgba(160,160,180,0.7)" letter-spacing="0.06em">PRE-MODERN</text>
+      <text x="105" y="42" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="rgba(120,120,140,0.55)" dy="13">~2003 – 2012</text>
+      <text x="310" y="30" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="rgba(160,160,180,0.7)" letter-spacing="0.06em">CONSOLIDATION</text>
+      <text x="310" y="42" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="rgba(120,120,140,0.55)" dy="13">2012 – 2018</text>
+      <text x="525" y="30" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="rgba(160,160,180,0.7)" letter-spacing="0.06em">MODERN ERA</text>
+      <text x="525" y="42" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="rgba(120,120,140,0.55)" dy="13">2018 – 2022</text>
+      <text x="747" y="30" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" fill="rgba(160,160,180,0.7)" letter-spacing="0.06em">RUST ERA</text>
+      <text x="747" y="42" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="rgba(120,120,140,0.55)" dy="13">2022 →</text>
+
+      <!-- Row layer labels (left margin) -->
+
+      <!-- ═══ NODES ═══════════════════════════════════════════════════ -->
+
+      <!-- distutils — build/purple — era 1 -->
+      <g class="node" data-name="distutils" data-desc="Python's original build tool, shipped with the stdlib. Could compile C extensions and create source distributions, but had no concept of fetching packages from the internet.">
+        <rect x="28" y="72" width="154" height="50" rx="8" fill="#2a1e42" stroke="#6632a0" stroke-width="0.8"/>
+        <text x="105" y="91" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#c084f5">distutils</text>
+        <text x="105" y="108" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(192,132,245,0.6)">stdlib, build only</text>
+      </g>
+
+      <!-- setuptools — build/purple — era 1→2 -->
+      <g class="node" data-name="setuptools" data-desc="Extended distutils with install_requires for declaring dependencies, entry_points for console scripts, and egg-info metadata. Still the most widely used build backend today, though now just one option among many.">
+        <rect x="28" y="150" width="154" height="50" rx="8" fill="#2a1e42" stroke="#6632a0" stroke-width="0.8"/>
+        <text x="105" y="169" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#c084f5">setuptools</text>
+        <text x="105" y="186" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(192,132,245,0.6)">build + metadata</text>
+      </g>
+
+      <!-- easy_install — installer/blue — era 1 -->
+      <g class="node" data-name="easy_install" data-desc="The first tool that could fetch packages from the internet (via PyPI's predecessor). Installed .egg files directly into site-packages with no isolation. Notoriously fragile and replaced by pip.">
+        <rect x="28" y="228" width="154" height="50" rx="8" fill="#111e36" stroke="#1a4a8f" stroke-width="0.8"/>
+        <text x="105" y="247" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#7ab3f0">easy_install</text>
+        <text x="105" y="264" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(122,179,240,0.6)">first installer</text>
+      </g>
+
+      <!-- virtualenv — env/teal — era 1 -->
+      <g class="node" data-name="virtualenv" data-desc="The original isolated environment tool. Creates a copy of the Python interpreter with a private site-packages. Still useful for Python 2 compatibility and some CI setups; venv supersedes it for Python 3.">
+        <rect x="28" y="306" width="154" height="50" rx="8" fill="#0e2420" stroke="#0f6e56" stroke-width="0.8"/>
+        <text x="105" y="325" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#4af0c0">virtualenv</text>
+        <text x="105" y="342" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(74,240,192,0.6)">isolated envs</text>
+      </g>
+
+      <!-- pip — installer/blue — era 2 -->
+      <g class="node" data-name="pip" data-desc="The standard Python installer since 2013. Replaced easy_install by handling wheels, sdists, and VCS dependencies. pip 21+ added a backtracking resolver (resolvelib). Has no lock file mechanism natively.">
+        <rect x="233" y="72" width="154" height="50" rx="8" fill="#111e36" stroke="#1a4a8f" stroke-width="0.8"/>
+        <text x="310" y="91" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#7ab3f0">pip</text>
+        <text x="310" y="108" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(122,179,240,0.6)">standard installer</text>
+      </g>
+
+      <!-- wheel — build/purple — era 2 -->
+      <g class="node" data-name="wheel (.whl)" data-desc="Binary distribution format defined in PEP 427. A wheel is a zip archive with pre-compiled code — no build step required at install time. Replaced .egg files and dramatically sped up installs.">
+        <rect x="233" y="150" width="154" height="50" rx="8" fill="#2a1e42" stroke="#6632a0" stroke-width="0.8"/>
+        <text x="310" y="169" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#c084f5">wheel</text>
+        <text x="310" y="186" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(192,132,245,0.6)">binary dist format</text>
+      </g>
+
+      <!-- venv — env/teal — era 2 -->
+      <g class="node" data-name="venv" data-desc="Python 3.3+ stdlib module that creates lightweight virtual environments. Works the same as virtualenv but is built in. The standard choice for new projects; uv and Poetry manage venvs on your behalf.">
+        <rect x="233" y="228" width="154" height="50" rx="8" fill="#0e2420" stroke="#0f6e56" stroke-width="0.8"/>
+        <text x="310" y="247" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#4af0c0">venv</text>
+        <text x="310" y="264" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(74,240,192,0.6)">stdlib, Python 3.3+</text>
+      </g>
+
+      <!-- conda — env/teal — era 2 -->
+      <g class="node" data-name="conda" data-desc="Cross-language package and environment manager from Anaconda. Manages C libraries, CUDA toolkits, R packages and Python all in one env. Uses its own binary package ecosystem (not PyPI). SAT-solver based resolution.">
+        <rect x="233" y="306" width="154" height="50" rx="8" fill="#0e2420" stroke="#0f6e56" stroke-width="0.8"/>
+        <text x="310" y="325" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#4af0c0">conda</text>
+        <text x="310" y="342" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(74,240,192,0.6)">cross-lang envs</text>
+      </g>
+
+      <!-- pyproject.toml — build/purple — era 3 -->
+      <g class="node" data-name="pyproject.toml" data-desc="The unified project config file introduced by PEP 518 (2016) and extended by PEP 517, 621, 660. Declares build-system requirements (PEP 518), project metadata (PEP 621), and tool config ([tool.X] tables). The backbone of modern Python packaging.">
+        <rect x="438" y="72" width="174" height="50" rx="8" fill="#2a1e42" stroke="#6632a0" stroke-width="0.8"/>
+        <text x="525" y="91" text-anchor="middle" font-family="DM Mono,monospace" font-size="12" font-weight="500" fill="#c084f5">pyproject.toml</text>
+        <text x="525" y="108" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(192,132,245,0.6)">PEP 517/518/621</text>
+      </g>
+
+      <!-- Poetry — all-in-one/amber — era 3 -->
+      <g class="node" data-name="Poetry" data-desc="First popular all-in-one workflow tool: dependency resolution, lock file (poetry.lock), venv management, and PyPI publishing in one CLI. Popularised the lock-file-first workflow for Python. Slow resolver on large trees.">
+        <rect x="438" y="150" width="174" height="50" rx="8" fill="#2a1e18" stroke="#7a5010" stroke-width="0.8"/>
+        <text x="525" y="169" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#f0b84a">Poetry</text>
+        <text x="525" y="186" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(240,184,74,0.6)">lock + venv + build</text>
+      </g>
+
+      <!-- pip-tools — installer/blue — era 3 -->
+      <g class="node" data-name="pip-tools" data-desc="Provides pip-compile (turns requirements.in constraints into a pinned requirements.txt lock file) and pip-sync (installs exactly what's in the lock file). Minimal footprint, easy to adopt in existing pip-based projects.">
+        <rect x="438" y="228" width="174" height="50" rx="8" fill="#111e36" stroke="#1a4a8f" stroke-width="0.8"/>
+        <text x="525" y="247" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#7ab3f0">pip-tools</text>
+        <text x="525" y="264" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(122,179,240,0.6)">compile lock files</text>
+      </g>
+
+      <!-- PDM — all-in-one/amber — era 3 -->
+      <g class="node" data-name="PDM" data-desc="All-in-one tool similar to Poetry but with stricter PEP 517/621 adherence and experimental PEP 582 support (local __pypackages__ instead of venvs). Good lock file support and dependency groups.">
+        <rect x="438" y="306" width="174" height="50" rx="8" fill="#2a1e18" stroke="#7a5010" stroke-width="0.8"/>
+        <text x="525" y="325" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#f0b84a">PDM</text>
+        <text x="525" y="342" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(240,184,74,0.6)">PEP 582 + lock</text>
+      </g>
+
+      <!-- Hatch — all-in-one/amber — era 3 -->
+      <g class="node" data-name="Hatch" data-desc="PyPA-endorsed workflow tool focused on env matrices and CI integration. Excellent for libraries that need to test across multiple Python versions. Uses hatchling as its build backend, which is also usable standalone.">
+        <rect x="438" y="384" width="174" height="50" rx="8" fill="#2a1e18" stroke="#7a5010" stroke-width="0.8"/>
+        <text x="525" y="403" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#f0b84a">Hatch</text>
+        <text x="525" y="420" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(240,184,74,0.6)">env + publish + CI</text>
+      </g>
+
+      <!-- uv — all-in-one/amber — era 4 -->
+      <g class="node" data-name="uv" data-desc="Rust-powered all-in-one tool from Astral. 10–100× faster than pip. Handles: pip replacement, venv creation, lock files (uv.lock), dependency groups, Python version management, and PyPI publishing. Uses a PubGrub-derived resolver.">
+        <rect x="663" y="72" width="170" height="50" rx="8" fill="#2a1e18" stroke="#c05010" stroke-width="1.2"/>
+        <text x="748" y="91" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#f97316">uv</text>
+        <text x="748" y="108" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(249,115,22,0.7)">Rust — pip+venv+lock</text>
+      </g>
+
+      <!-- Rye — all-in-one/amber — era 4 -->
+      <g class="node" data-name="Rye" data-desc="Experimental all-in-one tool started by Armin Ronacher as a proof of concept. Introduced the idea of managing Python versions alongside deps. Its ideas were folded into uv; Rye now defers to uv under the hood.">
+        <rect x="663" y="150" width="170" height="50" rx="8" fill="#2a1e18" stroke="#7a5010" stroke-width="0.8"/>
+        <text x="748" y="169" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#f0b84a">Rye</text>
+        <text x="748" y="186" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(240,184,74,0.6)">merged into uv</text>
+      </g>
+
+      <!-- maturin — build/purple — era 4 -->
+      <g class="node" data-name="maturin" data-desc="Build backend for Python packages with Rust extensions. Compiles Rust code via Cargo and produces wheels with the compiled binary. Used by projects like pydantic-core, tokenizers, and polars.">
+        <rect x="663" y="228" width="170" height="50" rx="8" fill="#2a1e42" stroke="#6632a0" stroke-width="0.8"/>
+        <text x="748" y="247" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#c084f5">maturin</text>
+        <text x="748" y="264" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(192,132,245,0.6)">Rust extensions</text>
+      </g>
+
+      <!-- build (pypa) — build/purple — era 4 -->
+      <g class="node" data-name="build (pypa)" data-desc="The reference PEP 517 build frontend from PyPA. Reads [build-system] from pyproject.toml, sets up an isolated build env, and invokes the configured backend (setuptools, flit, hatchling, etc.). Thin and spec-compliant.">
+        <rect x="663" y="306" width="170" height="50" rx="8" fill="#2a1e42" stroke="#6632a0" stroke-width="0.8"/>
+        <text x="748" y="325" text-anchor="middle" font-family="DM Mono,monospace" font-size="13" font-weight="500" fill="#c084f5">build (pypa)</text>
+        <text x="748" y="342" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" fill="rgba(192,132,245,0.6)">PEP 517 frontend</text>
+      </g>
+
+      <!-- ═══ ARROWS (evolution / supersedes) ═══════════════════ -->
+
+      <!-- easy_install → pip (replaced by) -->
+      <line x1="182" y1="253" x2="233" y2="97" stroke="rgba(160,160,200,0.22)" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+
+      <!-- virtualenv → venv (inspired) -->
+      <line x1="182" y1="331" x2="233" y2="253" stroke="rgba(160,160,200,0.22)" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+
+      <!-- pip → pip-tools (extended by) -->
+      <line x1="387" y1="97" x2="438" y2="253" stroke="rgba(160,160,200,0.22)" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+
+      <!-- Poetry → uv (inspired) -->
+      <line x1="612" y1="175" x2="663" y2="97" stroke="rgba(160,160,200,0.22)" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+
+      <!-- Rye → uv (merged into) — red dashed -->
+      <line x1="748" y1="200" x2="748" y2="122" stroke="rgba(248,113,113,0.45)" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+      <text x="760" y="165" font-family="DM Sans,sans-serif" font-size="10" fill="rgba(248,113,113,0.6)">merged</text>
+
+      <!-- ═══ BOTTOM LEGEND ROW ═══════════════════════════════════ -->
+      <text x="430" y="498" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="12" fill="rgba(160,160,180,0.45)">Hover any tool for details · dashed arrows = evolution / superseded</text>
+    </svg>
+  </div>
+
+  <footer>python-package-managers-map · static reference · no frameworks</footer>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<script>
+// ── Tooltip ───────────────────────────────────────────────────────────
+const tooltip = document.getElementById('tooltip');
+
+document.querySelectorAll('.node').forEach(node => {
+  node.addEventListener('mouseenter', e => {
+    const name = node.dataset.name;
+    const desc = node.dataset.desc;
+    tooltip.innerHTML = `<strong>${name}</strong>${desc}`;
+    tooltip.classList.add('visible');
+    positionTooltip(e);
+  });
+  node.addEventListener('mousemove', positionTooltip);
+  node.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+});
+
+function positionTooltip(e) {
+  const pad = 14;
+  const tw = 260, th = 100;
+  let x = e.clientX + pad;
+  let y = e.clientY + pad;
+  if (x + tw > window.innerWidth  - 10) x = e.clientX - tw - pad;
+  if (y + th > window.innerHeight - 10) y = e.clientY - th - pad;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
+
+// ── Legend ────────────────────────────────────────────────────────────
+function renderLegend() {
+  const isLight = document.documentElement.classList.contains('light');
+  const items = [
+    { color: isLight ? '#1a5fa8' : '#7ab3f0', label: 'Installer / resolver' },
+    { color: isLight ? '#0f6e56' : '#4af0c0', label: 'Environment manager' },
+    { color: isLight ? '#8a5c00' : '#f0b84a', label: 'All-in-one / workflow' },
+    { color: isLight ? '#5b21b6' : '#c084f5', label: 'Build / distribution' },
+    { color: isLight ? '#c2410c' : '#f97316', label: 'uv (Rust era)' },
+  ];
+  document.getElementById('legend').innerHTML = items.map(i =>
+    `<div class="legend-item"><span class="legend-dot" style="background:${i.color}"></span><span>${i.label}</span></div>`
+  ).join('');
+}
+
+// ── Theme ─────────────────────────────────────────────────────────────
+function applyTheme(light) {
+  document.documentElement.classList.toggle('light', light);
+  document.getElementById('theme-icon').textContent = light ? '🌙' : '☀️';
+  // SVG era bands need slight colour shift in light mode
+  document.querySelectorAll('#map rect[rx="10"]').forEach(r => {
+    r.style.fill = light ? 'rgba(0,0,0,0.025)' : 'rgba(255,255,255,0.025)';
+    r.style.stroke = light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)';
+  });
+  try { localStorage.setItem('pm-map-theme', light ? 'light' : 'dark'); } catch(e) {}
+  renderLegend();
+}
+function toggleTheme() {
+  applyTheme(!document.documentElement.classList.contains('light'));
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────
+(function() {
+  let saved; try { saved = localStorage.getItem('pm-map-theme'); } catch(e) {}
+  const preferLight = saved ? saved === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches;
+  applyTheme(preferLight);
+})();
+</script>
+</body>
+</html>

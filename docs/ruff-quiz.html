@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruff — Linter &amp; Formatter Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0f0f11;
+    --surface:  #17171a;
+    --surface2: #1e1e23;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.14);
+    --text:     #e8e8ec;
+    --muted:    #7a7a8a;
+    --accent:   #f97316;
+
+    /* category header chips */
+    --lint-bg: #1e1a14; --lint-border: #7a4a10; --lint-text: #f0a84a;
+    --fmt-bg:  #141e22; --fmt-border:  #107a6a; --fmt-text:  #4af0d8;
+    --cfg-bg:  #1a141e; --cfg-border:  #6a10a0; --cfg-text:  #c084f5;
+    --int-bg:  #141a14; --int-border:  #3a7a10; --int-text:  #7ec86a;
+
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+
+    --good-bg: rgba(74,222,128,0.12); --good-text: #4ade80; --good-border: rgba(74,222,128,0.3);
+    --ok-bg:   rgba(251,191,36,0.12); --ok-text:   #fbbf24; --ok-border:   rgba(251,191,36,0.3);
+    --bad-bg:  rgba(248,113,113,0.12);--bad-text:  #f87171; --bad-border:  rgba(248,113,113,0.3);
+
+    --tooltip-bg: #2a2a32;
+  }
+
+  :root.light {
+    --bg:       #f5f4f0;
+    --surface:  #ffffff;
+    --surface2: #eeecea;
+    --border:   rgba(0,0,0,0.08);
+    --border2:  rgba(0,0,0,0.14);
+    --text:     #1a1a1f;
+    --muted:    #888890;
+    --accent:   #c2410c;
+
+    --lint-bg: #fff3e0; --lint-border: #f4a030; --lint-text: #92400e;
+    --fmt-bg:  #e0f7f4; --fmt-border:  #14b8a6; --fmt-text:  #134e4a;
+    --cfg-bg:  #f3e8ff; --cfg-border:  #a855f7; --cfg-text:  #581c87;
+    --int-bg:  #ecfce7; --int-border:  #4ade80; --int-text:  #14532d;
+
+    --good-bg: rgba(22,163,74,0.1);  --good-text: #15803d; --good-border: rgba(22,163,74,0.3);
+    --ok-bg:   rgba(202,138,4,0.1);  --ok-text:   #a16207; --ok-border:   rgba(202,138,4,0.3);
+    --bad-bg:  rgba(220,38,38,0.1);  --bad-text:  #b91c1c; --bad-border:  rgba(220,38,38,0.3);
+
+    --tooltip-bg: #2a2a32;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── Theme toggle ── */
+  .theme-toggle {
+    flex-shrink: 0;
+    margin-top: 4px;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .theme-toggle:hover { background: var(--surface2); }
+
+  /* ── Header ── */
+  header {
+    max-width: 860px;
+    margin: 0 auto 48px;
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  h1 {
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+  h1 em { font-style: normal; color: var(--muted); }
+  .subtitle { font-size: 15px; color: var(--muted); max-width: 580px; line-height: 1.6; }
+
+  /* ── Theory ── */
+  .theory {
+    max-width: 860px;
+    margin: 0 auto 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .theory-intro { font-size: 13px; color: var(--muted); margin-bottom: 4px; line-height: 1.6; }
+  .theory-intro strong { color: var(--text); font-weight: 500; }
+
+  .accordion { border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+  .accordion.open { border-color: var(--accent); }
+
+  .acc-trigger {
+    width: 100%; display: flex; align-items: center; gap: 12px;
+    padding: 13px 16px; background: var(--surface); border: none;
+    cursor: pointer; text-align: left; transition: background 0.15s;
+    font-family: var(--font-body); color: var(--text);
+  }
+  .acc-trigger:hover { background: var(--surface2); }
+  .acc-num { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--accent); min-width: 22px; opacity: 0.8; }
+  .acc-title { font-size: 14px; font-weight: 500; flex: 1; }
+  .acc-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .acc-tag { font-family: var(--font-mono); font-size: 10px; padding: 2px 7px; border-radius: 4px; background: var(--surface2); color: var(--muted); border: 1px solid var(--border2); }
+  .accordion.open .acc-tag { opacity: 0; pointer-events: none; }
+  .acc-chevron { font-size: 12px; color: var(--muted); transition: transform 0.2s; flex-shrink: 0; }
+  .accordion.open .acc-chevron { transform: rotate(180deg); }
+
+  .acc-body { display: none; padding: 0 16px 16px; background: var(--surface); border-top: 1px solid var(--border); }
+  .accordion.open .acc-body { display: block; }
+  .acc-body p { font-size: 14px; line-height: 1.75; color: var(--text); margin: 12px 0 0; }
+  .acc-body code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    padding: 1px 5px; border-radius: 4px; color: var(--accent);
+  }
+  .acc-body .example-block { margin: 14px 0 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border2); }
+  .example-block-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 6px 12px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .example-block pre { margin: 0; padding: 12px; font-family: var(--font-mono); font-size: 12px; line-height: 1.65; color: var(--text); background: var(--surface); overflow-x: auto; white-space: pre; }
+  .pre-comment { color: var(--muted); }
+  .pre-key     { color: var(--accent); }
+  .pre-val     { color: #7ec86a; }
+  .pre-bad     { color: #f07070; }
+  .pre-good    { color: #7ec86a; }
+  .pre-warn    { color: #f0b84a; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  @media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
+  .mini-card { border-radius: 8px; border: 1px solid var(--border2); padding: 10px 12px; background: var(--surface2); }
+  .mini-card-title { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--accent); margin-bottom: 6px; }
+  .mini-card p { font-size: 13px; line-height: 1.6; color: var(--muted); margin: 0 !important; }
+
+  /* ── Legend ── */
+  .legend { max-width: 860px; margin: 0 auto 24px; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 12px; color: var(--muted); }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+  /* ── Bank ── */
+  .bank-label { max-width: 860px; margin: 0 auto 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .bank { max-width: 860px; margin: 0 auto 32px; min-height: 64px; padding: 12px; border-radius: 12px; border: 1.5px dashed var(--border2); background: var(--surface); display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; transition: border-color 0.15s, background 0.15s; }
+  .bank.over { border-color: var(--accent); background: rgba(249,115,22,0.05); }
+  .bank-empty { font-size: 13px; color: var(--muted); align-self: center; font-style: italic; padding: 4px 0; }
+
+  /* ── Grid ── */
+  .grid { max-width: 860px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 400px) { .grid { grid-template-columns: 1fr; } }
+
+  .tool-col { display: flex; flex-direction: column; gap: 0; }
+  .tool-header { padding: 10px 12px 8px; border-radius: 10px 10px 0 0; border: 1px solid transparent; display: flex; flex-direction: column; gap: 2px; }
+  .tool-name { font-family: var(--font-mono); font-size: 13px; font-weight: 500; }
+  .tool-sub  { font-size: 11px; opacity: 0.65; }
+
+  .tool-header.lint { background: var(--lint-bg); border-color: var(--lint-border); color: var(--lint-text); }
+  .tool-header.fmt  { background: var(--fmt-bg);  border-color: var(--fmt-border);  color: var(--fmt-text); }
+  .tool-header.cfg  { background: var(--cfg-bg);  border-color: var(--cfg-border);  color: var(--cfg-text); }
+  .tool-header.intg { background: var(--int-bg);  border-color: var(--int-border);  color: var(--int-text); }
+
+  .drop-zone { flex: 1; min-height: 120px; padding: 8px; border-radius: 0 0 10px 10px; border: 1px solid var(--border); border-top: none; background: var(--surface); display: flex; flex-direction: column; gap: 6px; transition: border-color 0.15s, background 0.15s; }
+  .drop-zone.over { background: var(--surface2); border-color: var(--border2); }
+
+  /* ── Pills ── */
+  .pill { display: inline-flex; align-items: center; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; font-family: var(--font-mono); cursor: grab; user-select: none; border: 1px solid transparent; transition: opacity 0.15s, transform 0.12s; line-height: 1.3; position: relative; }
+  .pill:active { cursor: grabbing; transform: scale(1.03); }
+  .pill.dragging { opacity: 0.3; }
+  .pill:hover { filter: brightness(1.12); }
+  .pill::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--tooltip-bg); border: 1px solid var(--border2); color: var(--text); font-family: var(--font-body); font-size: 12px; font-weight: 400; padding: 7px 10px; border-radius: 7px; white-space: normal; width: 230px; line-height: 1.5; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; text-align: left; }
+  .pill:hover::after { opacity: 1; }
+
+  /* ── Actions ── */
+  .actions { max-width: 860px; margin: 24px auto 0; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { padding: 9px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; font-family: var(--font-body); cursor: pointer; transition: background 0.15s, transform 0.1s; border: 1px solid var(--border2); background: var(--surface); color: var(--text); }
+  .btn:hover { background: var(--surface2); }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.1); }
+
+  /* ── Feedback ── */
+  .feedback { max-width: 860px; margin: 28px auto 0; border-radius: 12px; border: 1px solid var(--border2); background: var(--surface); overflow: hidden; display: none; }
+  .feedback.visible { display: block; }
+  .feedback-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .score-num { font-family: var(--font-mono); font-size: 28px; font-weight: 500; color: var(--accent); }
+  .score-label { font-size: 14px; color: var(--muted); }
+  .score-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+  .score-chip { font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 6px; }
+  .chip-good { background: var(--good-bg); color: var(--good-text); border: 1px solid var(--good-border); }
+  .chip-ok   { background: var(--ok-bg);   color: var(--ok-text);   border: 1px solid var(--ok-border); }
+  .chip-bad  { background: var(--bad-bg);  color: var(--bad-text);  border: 1px solid var(--bad-border); }
+  .feedback-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 0; }
+  .fb-tool-section { margin-bottom: 16px; }
+  .fb-tool-section:last-child { margin-bottom: 0; }
+  .fb-tool-name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .fb-item { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); margin-bottom: 6px; }
+  .fb-item:last-child { margin-bottom: 0; }
+  .fb-item-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .fb-req-label { font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+  .verdict-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .verdict-good { background: var(--good-bg); color: var(--good-text); }
+  .verdict-ok   { background: var(--ok-bg);   color: var(--ok-text); }
+  .verdict-bad  { background: var(--bad-bg);  color: var(--bad-text); }
+  .fb-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  /* ── Footer ── */
+  footer { max-width: 860px; margin: 48px auto 0; font-family: var(--font-mono); font-size: 11px; color: var(--muted); opacity: 0.5; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════ -->
+<header>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px">
+    <div>
+      <div class="eyebrow">Interactive quiz</div>
+      <h1>Ruff — Linter &amp; Formatter<br><em>Concepts &amp; Configuration</em></h1>
+      <p class="subtitle">
+        Drag each concept into the ruff category it belongs to.
+        Hover a pill to see its definition. Hit <strong>Check answers</strong> for detailed feedback.
+      </p>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark" aria-label="Toggle theme">
+      <span id="theme-icon">☀️</span>
+    </button>
+  </div>
+</header>
+
+<!-- ══ THEORY ═══════════════════════════════════════════════════════ -->
+<section class="theory">
+  <p class="theory-intro">
+    <strong>Before the quiz</strong> — four areas ruff covers. Expand each to understand what the category means, how ruff implements it, and how to configure it.
+  </p>
+
+  <!-- 1. Linting -->
+  <div class="accordion" id="acc1">
+    <button class="acc-trigger" onclick="toggleAcc('acc1')">
+      <span class="acc-num">01</span>
+      <span class="acc-title">Linting — detecting code problems</span>
+      <span class="acc-tags">
+        <span class="acc-tag">rule codes</span>
+        <span class="acc-tag">noqa</span>
+        <span class="acc-tag">select / ignore</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p>A <em>linter</em> reads source code and reports violations of rules without changing any files. Rules detect everything from actual bugs (using a variable before assignment) to style issues (unused imports) to security antipatterns (use of <code>assert</code> in production code).</p>
+      <p>Ruff ships with over 800 rules, each with a short code like <code>E501</code> (line too long), <code>F401</code> (unused import), or <code>B006</code> (mutable default argument). Rules are grouped into <em>rule sets</em> identified by a prefix letter — <code>E</code>/<code>W</code> for pycodestyle, <code>F</code> for Pyflakes, <code>B</code> for flake8-bugbear, <code>I</code> for isort, and many more.</p>
+      <p>You opt into rules with <code>select</code> and opt out with <code>ignore</code>. A specific violation on a line can be suppressed with a <code># noqa: F401</code> comment. Ruff can also <em>auto-fix</em> many violations — adding missing imports, removing unused ones, rewriting deprecated patterns — via <code>ruff check --fix</code>.</p>
+      <div class="example-block">
+        <div class="example-block-label">bad code → ruff output</div>
+        <pre><span class="pre-comment"># bad.py</span>
+<span class="pre-bad">import os</span>          <span class="pre-comment"># F401 — imported but unused</span>
+<span class="pre-bad">import sys, json</span>   <span class="pre-comment"># E401 — multiple imports on one line</span>
+
+def greet(name, items=<span class="pre-bad">[]</span>):   <span class="pre-comment"># B006 — mutable default argument</span>
+    x = 1              <span class="pre-comment"># F841 — local variable assigned but never used</span>
+    print("hello " + name)
+
+<span class="pre-comment">$ ruff check bad.py</span>
+<span class="pre-bad">bad.py:1:1: F401 `os` imported but unused</span>
+<span class="pre-bad">bad.py:2:1: E401 Multiple imports on one line</span>
+<span class="pre-bad">bad.py:4:18: B006 Do not use mutable data structures for argument defaults</span>
+<span class="pre-bad">bad.py:5:5: F841 Local variable `x` is assigned but never used</span></pre>
+      </div>
+      <div class="example-block" style="margin-top:10px">
+        <div class="example-block-label">pyproject.toml — rule selection</div>
+        <pre>[tool.ruff.lint]
+<span class="pre-key">select</span> = [<span class="pre-val">"E"</span>, <span class="pre-val">"F"</span>, <span class="pre-val">"B"</span>, <span class="pre-val">"I"</span>]   <span class="pre-comment"># enable rule sets</span>
+<span class="pre-key">ignore</span> = [<span class="pre-val">"E501"</span>]               <span class="pre-comment"># suppress line-length rule</span>
+<span class="pre-key">fixable</span> = [<span class="pre-val">"ALL"</span>]               <span class="pre-comment"># auto-fix everything possible</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Formatting -->
+  <div class="accordion" id="acc2">
+    <button class="acc-trigger" onclick="toggleAcc('acc2')">
+      <span class="acc-num">02</span>
+      <span class="acc-title">Formatting — enforcing consistent style</span>
+      <span class="acc-tags">
+        <span class="acc-tag">black-compatible</span>
+        <span class="acc-tag">line-length</span>
+        <span class="acc-tag">quote-style</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p>A <em>formatter</em> rewrites your source files to enforce a consistent style — indentation, spacing, quote style, trailing commas, line wrapping. Unlike a linter it doesn't report violations; it just fixes them. The result is deterministic: the same input always produces the same output.</p>
+      <p>Ruff's formatter is a Black-compatible drop-in replacement, roughly 35× faster. "Compatible" means it produces the same output as Black on virtually all real-world Python code, so you can switch without changing your diff history. The key difference: ruff handles both linting and formatting in one tool, eliminating the friction of coordinating Black + isort + flake8 separately.</p>
+      <p>The formatter is intentionally opinionated — very few knobs. You can configure <code>line-length</code>, <code>quote-style</code> (single vs. double), <code>indent-style</code> (spaces vs. tabs), and whether to add a magic trailing comma. That's mostly it. The philosophy is that fewer options means less team debate.</p>
+      <div class="example-block">
+        <div class="example-block-label">before → after ruff format</div>
+        <pre><span class="pre-comment"># before</span>
+<span class="pre-bad">def foo(a,b,c):
+    return   a+b+c
+x = {'key' :   'value'  , 'other':'thing'}
+if (x == True):
+    pass</span>
+
+<span class="pre-comment"># after</span>
+<span class="pre-good">def foo(a, b, c):
+    return a + b + c
+
+
+x = {"key": "value", "other": "thing"}
+if x == True:
+    pass</span></pre>
+      </div>
+      <div class="example-block" style="margin-top:10px">
+        <div class="example-block-label">pyproject.toml — formatter options</div>
+        <pre>[tool.ruff.format]
+<span class="pre-key">quote-style</span>           = <span class="pre-val">"double"</span>   <span class="pre-comment"># default, Black-compatible</span>
+<span class="pre-key">indent-style</span>          = <span class="pre-val">"space"</span>
+<span class="pre-key">skip-magic-trailing-comma</span> = <span class="pre-val">false</span>  <span class="pre-comment"># respect trailing commas</span>
+<span class="pre-key">line-ending</span>           = <span class="pre-val">"auto"</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Configuration -->
+  <div class="accordion" id="acc3">
+    <button class="acc-trigger" onclick="toggleAcc('acc3')">
+      <span class="acc-num">03</span>
+      <span class="acc-title">Configuration — scoping &amp; per-file overrides</span>
+      <span class="acc-tags">
+        <span class="acc-tag">per-file-ignores</span>
+        <span class="acc-tag">extend</span>
+        <span class="acc-tag">target-version</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p>Ruff is configured via <code>pyproject.toml</code> (under <code>[tool.ruff]</code>) or a standalone <code>ruff.toml</code>. Configuration is hierarchical: a base config can be extended by sub-configs, and rules can be overridden per file glob.</p>
+      <p><code>per-file-ignores</code> is the most important scoping feature — it lets you suppress specific rules only in certain paths. The canonical use case is test files: <code>assert</code> is banned in production code (S101) but necessary in pytest. You also often want to allow unused imports in <code>__init__.py</code> files where re-exporting is intentional.</p>
+      <p><code>target-version</code> tells ruff which Python version your code needs to support, which affects which rules fire and how auto-fixes are generated — for example, using <code>f"..."</code> instead of <code>".format()"</code> is only safe to auto-fix if you're targeting Python 3.6+.</p>
+      <div class="example-block">
+        <div class="example-block-label">pyproject.toml — per-file overrides</div>
+        <pre>[tool.ruff]
+<span class="pre-key">line-length</span>    = <span class="pre-val">100</span>
+<span class="pre-key">target-version</span> = <span class="pre-val">"py311"</span>
+
+[tool.ruff.lint]
+<span class="pre-key">select</span> = [<span class="pre-val">"E"</span>, <span class="pre-val">"F"</span>, <span class="pre-val">"B"</span>, <span class="pre-val">"S"</span>, <span class="pre-val">"I"</span>]
+
+[tool.ruff.lint.per-file-ignores]
+<span class="pre-val">"tests/**"</span>     = [<span class="pre-val">"S101"</span>]         <span class="pre-comment"># allow assert in tests</span>
+<span class="pre-val">"__init__.py"</span>  = [<span class="pre-val">"F401"</span>]         <span class="pre-comment"># allow re-exports</span>
+<span class="pre-val">"scripts/**"</span>   = [<span class="pre-val">"T201"</span>]         <span class="pre-comment"># allow print() in scripts</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Integration -->
+  <div class="accordion" id="acc4">
+    <button class="acc-trigger" onclick="toggleAcc('acc4')">
+      <span class="acc-num">04</span>
+      <span class="acc-title">Integration — editors, CI &amp; pre-commit</span>
+      <span class="acc-tags">
+        <span class="acc-tag">pre-commit</span>
+        <span class="acc-tag">exit codes</span>
+        <span class="acc-tag">--watch</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p>Ruff is designed to be fast enough that it can run on every keystroke in an editor or on every commit in CI without adding perceptible latency. It has first-class support for the Language Server Protocol (LSP) via <code>ruff server</code>, which powers the VS Code extension and any other LSP-compatible editor (Neovim, Helix, Zed).</p>
+      <p>In CI, the key distinction is <em>check mode</em> vs. <em>fix mode</em>. In CI you want <code>ruff check .</code> and <code>ruff format --check .</code> — both exit with a non-zero code if violations exist, without modifying files. Local developer workflows use <code>--fix</code> and <code>ruff format</code> to apply changes in place.</p>
+      <p>The pre-commit integration is straightforward: ruff provides an official hook at <code>github.com/astral-sh/ruff-pre-commit</code>. Because ruff is a single binary with no Python dependencies, it installs once and runs in milliseconds — much faster than managing a separate flake8 + black + isort + pyupgrade hook chain.</p>
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="mini-card-title">.pre-commit-config.yaml</div>
+          <p><code>- repo: https://github.com/astral-sh/ruff-pre-commit</code><br>hooks: <code>ruff</code> (lint + fix) and <code>ruff-format</code> (format). Replaces black + flake8 + isort hooks.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-title">CI check (no modifications)</div>
+          <p><code>ruff check .</code> — exits 1 if violations found.<br><code>ruff format --check .</code> — exits 1 if formatting needed. Both are idempotent and safe to run in parallel.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ QUIZ ══════════════════════════════════════════════════════════ -->
+<div class="legend" id="legend"></div>
+
+<div class="bank-label">Concept bank — drag from here</div>
+<div class="bank" id="bank">
+  <span class="bank-empty" id="bank-empty">All concepts placed — drag back here to return one</span>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<div class="actions">
+  <button class="btn primary" onclick="checkAnswers()">Check answers</button>
+  <button class="btn" onclick="resetQuiz()">Reset</button>
+</div>
+
+<div class="feedback" id="feedback">
+  <div class="feedback-header" id="feedback-header"></div>
+  <div class="feedback-body"   id="feedback-body"></div>
+</div>
+
+<footer>ruff-quiz &mdash; drag &amp; drop, no frameworks, no build step</footer>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────
+const REQS = [
+  { id:'r1',  label:'Rule codes (E/F/B/I)',
+    dc:'#f0a84a', lc:'#92400e', bg:'rgba(240,168,74,0.15)',  lbg:'rgba(200,130,0,0.1)',  border:'rgba(240,168,74,0.35)',  lborder:'rgba(200,130,0,0.4)',
+    tip:'Short alphanumeric codes like E501 or F401 that identify individual lint rules.' },
+  { id:'r2',  label:'Black-compatible output',
+    dc:'#4af0d8', lc:'#134e4a', bg:'rgba(74,240,216,0.12)',  lbg:'rgba(20,184,166,0.1)', border:'rgba(74,240,216,0.3)',   lborder:'rgba(20,184,166,0.4)',
+    tip:'The formatter produces the same result as running Black, making migration seamless.' },
+  { id:'r3',  label:'per-file-ignores',
+    dc:'#c084f5', lc:'#581c87', bg:'rgba(192,132,245,0.12)', lbg:'rgba(168,85,247,0.1)', border:'rgba(192,132,245,0.3)',  lborder:'rgba(168,85,247,0.4)',
+    tip:'Suppress specific rule codes only within certain file globs (e.g. allow assert in tests/).' },
+  { id:'r4',  label:'ruff server (LSP)',
+    dc:'#7ec86a', lc:'#14532d', bg:'rgba(126,200,106,0.12)', lbg:'rgba(74,222,128,0.1)', border:'rgba(126,200,106,0.3)',  lborder:'rgba(74,222,128,0.4)',
+    tip:'Language Server Protocol daemon powering editor integrations in VS Code, Neovim, Helix.' },
+  { id:'r5',  label:'noqa comment',
+    dc:'#f0a84a', lc:'#92400e', bg:'rgba(240,168,74,0.15)',  lbg:'rgba(200,130,0,0.1)',  border:'rgba(240,168,74,0.35)',  lborder:'rgba(200,130,0,0.4)',
+    tip:'Inline suppression: # noqa: F401 tells ruff to ignore a specific rule on that line.' },
+  { id:'r6',  label:'quote-style option',
+    dc:'#4af0d8', lc:'#134e4a', bg:'rgba(74,240,216,0.12)',  lbg:'rgba(20,184,166,0.1)', border:'rgba(74,240,216,0.3)',   lborder:'rgba(20,184,166,0.4)',
+    tip:'Formatter setting: whether to normalise string literals to single or double quotes.' },
+  { id:'r7',  label:'target-version',
+    dc:'#c084f5', lc:'#581c87', bg:'rgba(192,132,245,0.12)', lbg:'rgba(168,85,247,0.1)', border:'rgba(192,132,245,0.3)',  lborder:'rgba(168,85,247,0.4)',
+    tip:'Tells ruff which Python version the code targets, affecting rule applicability and auto-fix safety.' },
+  { id:'r8',  label:'--check flag (CI mode)',
+    dc:'#7ec86a', lc:'#14532d', bg:'rgba(126,200,106,0.12)', lbg:'rgba(74,222,128,0.1)', border:'rgba(126,200,106,0.3)',  lborder:'rgba(74,222,128,0.4)',
+    tip:'Makes ruff exit non-zero if violations exist, without modifying files. Safe for CI pipelines.' },
+  { id:'r9',  label:'select / ignore lists',
+    dc:'#f0a84a', lc:'#92400e', bg:'rgba(240,168,74,0.15)',  lbg:'rgba(200,130,0,0.1)',  border:'rgba(240,168,74,0.35)',  lborder:'rgba(200,130,0,0.4)',
+    tip:'The primary way to opt rule sets in or out globally across the project.' },
+  { id:'r10', label:'magic trailing comma',
+    dc:'#4af0d8', lc:'#134e4a', bg:'rgba(74,240,216,0.12)',  lbg:'rgba(20,184,166,0.1)', border:'rgba(74,240,216,0.3)',   lborder:'rgba(20,184,166,0.4)',
+    tip:'A trailing comma after the last item in a collection forces it to stay expanded across multiple lines.' },
+  { id:'r11', label:'extend-select',
+    dc:'#c084f5', lc:'#581c87', bg:'rgba(192,132,245,0.12)', lbg:'rgba(168,85,247,0.1)', border:'rgba(192,132,245,0.3)',  lborder:'rgba(168,85,247,0.4)',
+    tip:'Add rules on top of an inherited base config without replacing the entire select list.' },
+  { id:'r12', label:'pre-commit hook',
+    dc:'#7ec86a', lc:'#14532d', bg:'rgba(126,200,106,0.12)', lbg:'rgba(74,222,128,0.1)', border:'rgba(126,200,106,0.3)',  lborder:'rgba(74,222,128,0.4)',
+    tip:'Official astral-sh/ruff-pre-commit hook that runs ruff check + format on every git commit.' },
+  { id:'r13', label:'auto-fix (--fix)',
+    dc:'#f0a84a', lc:'#92400e', bg:'rgba(240,168,74,0.15)',  lbg:'rgba(200,130,0,0.1)',  border:'rgba(240,168,74,0.35)',  lborder:'rgba(200,130,0,0.4)',
+    tip:'Automatically rewrites fixable violations in-place — removing unused imports, adding missing ones, etc.' },
+  { id:'r14', label:'indent-style option',
+    dc:'#4af0d8', lc:'#134e4a', bg:'rgba(74,240,216,0.12)',  lbg:'rgba(20,184,166,0.1)', border:'rgba(74,240,216,0.3)',   lborder:'rgba(20,184,166,0.4)',
+    tip:'Formatter setting: normalise indentation to spaces or tabs.' },
+  { id:'r15', label:'ruff.toml / pyproject.toml',
+    dc:'#c084f5', lc:'#581c87', bg:'rgba(192,132,245,0.12)', lbg:'rgba(168,85,247,0.1)', border:'rgba(192,132,245,0.3)',  lborder:'rgba(168,85,247,0.4)',
+    tip:'The two supported config file formats. ruff.toml is standalone; pyproject.toml uses [tool.ruff].' },
+  { id:'r16', label:'--watch mode',
+    dc:'#7ec86a', lc:'#14532d', bg:'rgba(126,200,106,0.12)', lbg:'rgba(74,222,128,0.1)', border:'rgba(126,200,106,0.3)',  lborder:'rgba(74,222,128,0.4)',
+    tip:'Re-runs ruff automatically whenever a file changes — useful during active development.' },
+];
+
+const TOOLS = [
+  { id:'lint', label:'Linting',     sub:'detecting problems', cls:'lint' },
+  { id:'fmt',  label:'Formatting',  sub:'enforcing style',    cls:'fmt'  },
+  { id:'cfg',  label:'Configuration', sub:'scoping & overrides', cls:'cfg' },
+  { id:'intg', label:'Integration', sub:'editors & CI',       cls:'intg' },
+];
+
+const ANSWERS = {
+  r1:  { good:['lint'], ok:[],     bad:['fmt','cfg','intg'] },
+  r2:  { good:['fmt'],  ok:[],     bad:['lint','cfg','intg'] },
+  r3:  { good:['cfg'],  ok:[],     bad:['lint','fmt','intg'] },
+  r4:  { good:['intg'], ok:[],     bad:['lint','fmt','cfg'] },
+  r5:  { good:['lint'], ok:[],     bad:['fmt','cfg','intg'] },
+  r6:  { good:['fmt'],  ok:[],     bad:['lint','cfg','intg'] },
+  r7:  { good:['cfg'],  ok:['lint'], bad:['fmt','intg'] },
+  r8:  { good:['intg'], ok:[],     bad:['lint','fmt','cfg'] },
+  r9:  { good:['lint'], ok:['cfg'], bad:['fmt','intg'] },
+  r10: { good:['fmt'],  ok:[],     bad:['lint','cfg','intg'] },
+  r11: { good:['cfg'],  ok:[],     bad:['lint','fmt','intg'] },
+  r12: { good:['intg'], ok:[],     bad:['lint','fmt','cfg'] },
+  r13: { good:['lint'], ok:[],     bad:['fmt','cfg','intg'] },
+  r14: { good:['fmt'],  ok:[],     bad:['lint','cfg','intg'] },
+  r15: { good:['cfg'],  ok:[],     bad:['lint','fmt','intg'] },
+  r16: { good:['intg'], ok:[],     bad:['lint','fmt','cfg'] },
+};
+
+const FEEDBACK = {
+  r1:  { good:"Rule codes like E501 or F401 are the atomic unit of the linter. Each maps to one check; you enable/disable them via select and ignore.", bad:"Rule codes are purely a linting concept — the formatter has no rule codes, just style options." },
+  r2:  { good:"Ruff's formatter was built to match Black's output exactly, so teams can switch without reformatting history. It covers spacing, trailing commas, blank lines, and string normalisation.", bad:"Black-compatibility is a formatter guarantee, not a lint or config concern." },
+  r3:  { good:"per-file-ignores is a configuration directive that maps glob patterns to rule lists. It's the right way to handle cases like allowing assert in tests without disabling S101 globally.", bad:"per-file-ignores lives in [tool.ruff.lint] config — it's not a lint rule itself, and not part of formatting." },
+  r4:  { good:"ruff server implements LSP so editors can show lint errors and format-on-save without spawning a new process per keystroke. It replaces the older pylsp-ruff approach.", bad:"The LSP server is an integration mechanism for editors — it's not a lint rule or a formatting option." },
+  r5:  { good:"# noqa: F401 inline comments are the escape hatch when you genuinely need to suppress a specific rule on a specific line. Use sparingly — per-file-ignores is usually cleaner.", bad:"noqa is a linting concept. The formatter ignores noqa comments entirely." },
+  r6:  { good:"quote-style ('single' or 'double') tells the formatter how to normalise string literals. Default is double, matching Black.", bad:"quote-style is a [tool.ruff.format] setting — it controls the formatter, not the linter." },
+  r7:  { good:"target-version (e.g. 'py311') scopes which rules are active and which auto-fixes are safe. A fix that uses f-strings is only applied if target-version >= py36.", ok:"target-version also affects some lint rules (e.g. UP rules that suggest newer syntax), so it sits at the intersection of config and lint." ,bad:"target-version is a top-level config setting, not a formatting option." },
+  r8:  { good:"--check (for ruff format) and the default ruff check behaviour both exit non-zero on violations without writing files. This is how you enforce ruff in CI without accidental auto-modifications.", bad:"--check is an integration/CI flag — it doesn't change any lint rules or formatting options." },
+  r9:  { good:"select and ignore are the primary lint configuration knobs. select = ['E','F','B','I'] enables four rule sets; ignore = ['E501'] carves out one rule.", ok:"select/ignore live under [tool.ruff.lint] so they're closely tied to configuration, but their purpose is enabling/disabling lint rules.", bad:"select/ignore have no effect on the formatter." },
+  r10: { good:"A trailing comma after the last item (e.g. [a, b, c,]) is the 'magic' signal that this collection should stay expanded across multiple lines even if it would fit on one. The formatter respects it.", bad:"Magic trailing comma is a formatting concept — the linter doesn't care about trailing commas." },
+  r11: { good:"extend-select adds rules on top of whatever select already contains, which is useful in monorepos where sub-packages want to inherit a shared base config and add stricter rules.", bad:"extend-select is a configuration directive — it modifies the rule selection but isn't a rule or format option itself." },
+  r12: { good:"The official astral-sh/ruff-pre-commit hook is a single binary with no Python deps, replacing the entire black + flake8 + isort + pyupgrade hook chain. It runs in milliseconds.", bad:"Pre-commit hooks are an integration concern — not a lint rule or formatter setting." },
+  r13: { good:"--fix rewrites fixable violations in-place: removing unused imports, adding __all__ entries, rewriting deprecated syntax. About 50% of ruff rules have auto-fixes.", bad:"Auto-fix is part of the linting workflow (it acts on lint violations). The formatter always rewrites files; it doesn't use the fix mechanism." },
+  r14: { good:"indent-style ('space' or 'tab') tells the formatter how to normalise indentation. Tabs are supported for codebases that use them.", bad:"indent-style is a [tool.ruff.format] option — it has nothing to do with lint rules or configuration scoping." },
+  r15: { good:"ruff.toml and [tool.ruff] in pyproject.toml are the two config file locations. ruff.toml is useful when you want ruff config separate from the rest of pyproject.toml.", bad:"Config file format is a configuration concern — not a lint rule or formatting style choice." },
+  r16: { good:"ruff check --watch re-runs on every file change, giving instant feedback during development without needing editor integration. Useful in a terminal split.", bad:"--watch is an integration/workflow feature — it doesn't change which rules fire or how files are formatted." },
+};
+
+// ── State ─────────────────────────────────────────────────────────────
+let state = {};
+let dragging = null;
+
+function initState() {
+  state = {};
+  TOOLS.forEach(t => state[t.id] = []);
+}
+
+// ── Render ────────────────────────────────────────────────────────────
+function render() { renderBank(); renderGrid(); }
+
+function renderBank() {
+  const bank = document.getElementById('bank');
+  const empty = document.getElementById('bank-empty');
+  bank.querySelectorAll('.pill').forEach(p => p.remove());
+  const placed = new Set(Object.values(state).flat());
+  const unplaced = REQS.filter(r => !placed.has(r.id));
+  empty.style.display = unplaced.length === 0 ? 'inline' : 'none';
+  unplaced.forEach(r => bank.appendChild(makePill(r)));
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  TOOLS.forEach(t => {
+    const col = document.createElement('div');
+    col.className = 'tool-col';
+    const hdr = document.createElement('div');
+    hdr.className = `tool-header ${t.cls}`;
+    hdr.innerHTML = `<span class="tool-name">${t.label}</span><span class="tool-sub">${t.sub}</span>`;
+    col.appendChild(hdr);
+    const zone = document.createElement('div');
+    zone.className = 'drop-zone';
+    zone.dataset.tool = t.id;
+    setupDrop(zone);
+    state[t.id].forEach(rid => {
+      const r = REQS.find(x => x.id === rid);
+      zone.appendChild(makePill(r, true));
+    });
+    col.appendChild(zone);
+    grid.appendChild(col);
+  });
+}
+
+// ── Pills ─────────────────────────────────────────────────────────────
+function makePill(r, inZone = false) {
+  const el = document.createElement('div');
+  el.className = 'pill';
+  el.dataset.req = r.id;
+  el.draggable = true;
+  const isLight = document.documentElement.classList.contains('light');
+  el.style.cssText = `background:${isLight?r.lbg:r.bg};color:${isLight?r.lc:r.dc};border-color:${isLight?r.lborder:r.border}`;
+  el.setAttribute('data-tip', r.tip);
+  el.style.width = inZone ? '100%' : '';
+  el.textContent = r.label;
+  el.addEventListener('dragstart', e => { dragging = r.id; setTimeout(()=>el.classList.add('dragging'),0); e.dataTransfer.effectAllowed='move'; });
+  el.addEventListener('dragend',   () => { dragging = null; el.classList.remove('dragging'); });
+  el.addEventListener('touchstart', handleTouchStart, { passive: true });
+  el.addEventListener('touchmove',  handleTouchMove,  { passive: false });
+  el.addEventListener('touchend',   handleTouchEnd);
+  return el;
+}
+
+// ── Drop zones ────────────────────────────────────────────────────────
+function setupDrop(zone) {
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('over');
+    if (!dragging) return;
+    moveReq(dragging, zone.dataset.tool);
+  });
+}
+
+function setupBankDrop() {
+  const bank = document.getElementById('bank');
+  bank.addEventListener('dragover',  e => { e.preventDefault(); bank.classList.add('over'); });
+  bank.addEventListener('dragleave', () => bank.classList.remove('over'));
+  bank.addEventListener('drop', e => {
+    e.preventDefault(); bank.classList.remove('over');
+    if (!dragging) return;
+    moveReq(dragging, null);
+  });
+}
+
+function moveReq(reqId, toolId) {
+  Object.keys(state).forEach(k => { state[k] = state[k].filter(x => x !== reqId); });
+  if (toolId) state[toolId].push(reqId);
+  document.getElementById('feedback').classList.remove('visible');
+  render();
+}
+
+// ── Touch ─────────────────────────────────────────────────────────────
+let touchReqId = null, touchClone = null;
+
+function handleTouchStart(e) {
+  touchReqId = e.currentTarget.dataset.req;
+  const r = REQS.find(x => x.id === touchReqId);
+  touchClone = makePill(r);
+  touchClone.style.cssText += ';position:fixed;pointer-events:none;z-index:1000;opacity:0.85;width:auto;';
+  document.body.appendChild(touchClone);
+}
+function handleTouchMove(e) {
+  e.preventDefault();
+  if (!touchClone) return;
+  const t = e.touches[0];
+  touchClone.style.left = (t.clientX - 60) + 'px';
+  touchClone.style.top  = (t.clientY - 20) + 'px';
+}
+function handleTouchEnd(e) {
+  if (!touchClone) return;
+  const t = e.changedTouches[0];
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  touchClone.remove(); touchClone = null;
+  if (!touchReqId) return;
+  const zone = el?.closest('.drop-zone');
+  const bank = el?.closest('.bank');
+  if (zone) moveReq(touchReqId, zone.dataset.tool);
+  else if (bank) moveReq(touchReqId, null);
+  touchReqId = null;
+}
+
+// ── Check answers ─────────────────────────────────────────────────────
+function checkAnswers() {
+  let nGood = 0, nOk = 0, nBad = 0;
+  const sections = [];
+  TOOLS.forEach(t => {
+    const placed = state[t.id];
+    if (!placed.length) return;
+    const items = placed.map(rid => {
+      const r = REQS.find(x => x.id === rid);
+      const ans = ANSWERS[rid], fb = FEEDBACK[rid];
+      let verdict, cls, text;
+      if (ans.good.includes(t.id)) {
+        verdict='Great fit'; cls='good'; text=fb.good; nGood++;
+      } else if (ans.ok.includes(t.id)) {
+        verdict='Partial'; cls='ok'; text=[fb.good,fb.ok,fb.bad].filter(Boolean).join(' '); nOk++;
+      } else {
+        verdict='Wrong category'; cls='bad';
+        const better = ans.good.length ? `Belongs in: ${ans.good.join('/')}. ` : '';
+        text = better + (fb.bad||''); nBad++;
+      }
+      return { r, verdict, cls, text };
+    });
+    sections.push({ tool:t, items });
+  });
+  const total = nGood + nOk + nBad;
+  if (total === 0) { alert('Drag some concepts first!'); return; }
+
+  const isLight = document.documentElement.classList.contains('light');
+  document.getElementById('feedback-header').innerHTML = `
+    <span class="score-num">${nGood}/${total}</span>
+    <span class="score-label">correct placements</span>
+    <div class="score-chips">
+      <span class="score-chip chip-good">${nGood} correct</span>
+      <span class="score-chip chip-ok">${nOk} partial</span>
+      <span class="score-chip chip-bad">${nBad} wrong</span>
+    </div>`;
+
+  document.getElementById('feedback-body').innerHTML = sections.map(({ tool, items }) => `
+    <div class="fb-tool-section">
+      <div class="fb-tool-name">${tool.label}</div>
+      ${items.map(({ r, verdict, cls, text }) => `
+        <div class="fb-item">
+          <div class="fb-item-top">
+            <span class="fb-req-label" style="color:${isLight?r.lc:r.dc}">${r.label}</span>
+            <span class="verdict-badge verdict-${cls}">${verdict}</span>
+          </div>
+          ${text ? `<div class="fb-text">${text}</div>` : ''}
+        </div>`).join('')}
+    </div>`).join('');
+
+  document.getElementById('feedback').classList.add('visible');
+  document.getElementById('feedback').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────
+function resetQuiz() {
+  initState();
+  document.getElementById('feedback').classList.remove('visible');
+  render();
+}
+
+// ── Legend ────────────────────────────────────────────────────────────
+function renderLegend() {
+  const isLight = document.documentElement.classList.contains('light');
+  const items = [
+    { color: isLight ? '#92400e' : '#f0a84a', label:'Linting' },
+    { color: isLight ? '#134e4a' : '#4af0d8', label:'Formatting' },
+    { color: isLight ? '#581c87' : '#c084f5', label:'Configuration' },
+    { color: isLight ? '#14532d' : '#7ec86a', label:'Integration' },
+  ];
+  document.getElementById('legend').innerHTML = items.map(i =>
+    `<div class="legend-item"><span class="legend-swatch" style="background:${i.color}"></span><span>${i.label}</span></div>`
+  ).join('');
+}
+
+// ── Accordion ─────────────────────────────────────────────────────────
+function toggleAcc(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ── Theme ─────────────────────────────────────────────────────────────
+function applyTheme(light) {
+  document.documentElement.classList.toggle('light', light);
+  document.getElementById('theme-icon').textContent = light ? '🌙' : '☀️';
+  try { localStorage.setItem('ruff-quiz-theme', light ? 'light' : 'dark'); } catch(e) {}
+}
+function toggleTheme() {
+  applyTheme(!document.documentElement.classList.contains('light'));
+  renderLegend(); render();
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────
+(function() {
+  let saved; try { saved = localStorage.getItem('ruff-quiz-theme'); } catch(e) {}
+  applyTheme(saved ? saved === 'light' : window.matchMedia('(prefers-color-scheme: light)').matches);
+})();
+initState();
+renderLegend();
+render();
+setupBankDrop();
+</script>
+</body>
+</html>

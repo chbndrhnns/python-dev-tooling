@@ -407,6 +407,170 @@
     line-height: 1.6;
   }
 
+  /* ── Theory section ── */
+  .theory {
+    max-width: 860px;
+    margin: 0 auto 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .theory-intro {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    line-height: 1.6;
+  }
+  .theory-intro strong { color: var(--text); font-weight: 500; }
+
+  .accordion {
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .accordion.open { border-color: var(--accent); }
+
+  .acc-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 16px;
+    background: var(--surface);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+    font-family: var(--font-body);
+    color: var(--text);
+  }
+  .acc-trigger:hover { background: var(--surface2); }
+
+  .acc-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    min-width: 22px;
+    opacity: 0.8;
+  }
+  .acc-title { font-size: 14px; font-weight: 500; flex: 1; }
+  .acc-tags  { display: flex; gap: 5px; flex-wrap: wrap; }
+  .acc-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border2);
+  }
+  .accordion.open .acc-tag { opacity: 0; pointer-events: none; }
+  .acc-chevron {
+    font-size: 12px;
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .accordion.open .acc-chevron { transform: rotate(180deg); }
+
+  .acc-body {
+    display: none;
+    padding: 0 16px 16px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .accordion.open .acc-body { display: block; }
+
+  .acc-body p {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text);
+    margin: 12px 0 0;
+  }
+  .acc-body code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+  .acc-body .example-block {
+    margin: 14px 0 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border2);
+  }
+  .example-block-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 6px 12px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .example-block pre {
+    margin: 0;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text);
+    background: var(--surface);
+    overflow-x: auto;
+  }
+  .pre-comment { color: var(--muted); }
+  .pre-key     { color: var(--accent); }
+  .pre-val     { color: #7ec86a; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  @media (max-width: 560px) { .two-col { grid-template-columns: 1fr; } }
+
+  .mini-card {
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    padding: 10px 12px;
+    background: var(--surface2);
+  }
+  .mini-card-title {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .mini-card p { font-size: 13px; line-height: 1.6; color: var(--muted); margin: 0 !important; }
+
+  .verdict-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 6px 0 0;
+    font-size: 13px;
+  }
+  .vr-tool {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    min-width: 90px;
+    flex-shrink: 0;
+  }
+  .vr-pip    { color: var(--pip-text); }
+  .vr-poetry { color: var(--poetry-text); }
+  .vr-uv     { color: var(--uv-text); }
+  .vr-conda  { color: var(--conda-text); }
+  .vr-desc   { color: var(--muted); line-height: 1.5; }
+
   /* ── Footer ── */
   footer {
     max-width: 860px;
@@ -436,6 +600,172 @@
     </button>
   </div>
 </header>
+
+<!-- ══ THEORY SECTION ══════════════════════════════════════════════ -->
+<section class="theory">
+  <p class="theory-intro">
+    <strong>Before the quiz</strong> — five core problems every package manager has to solve.
+    Expand each to understand the requirement, why it's hard, and how each tool approaches it.
+  </p>
+
+  <!-- 1. Dependency resolution -->
+  <div class="accordion" id="acc1">
+    <button class="acc-trigger" onclick="toggleAcc('acc1')">
+      <span class="acc-num">01</span>
+      <span class="acc-title">Dependency resolution &amp; version constraints</span>
+      <span class="acc-tags">
+        <span class="acc-tag">r1 — reproducible builds</span>
+        <span class="acc-tag">r6 — version constraints</span>
+        <span class="acc-tag">r9 — conflict detection</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p>Every package has its own dependencies, and those have dependencies too. The resolver's job is to find one version of every package such that all constraints are simultaneously satisfied — a problem that is NP-complete in the general case.</p>
+      <p>Version constraints are expressed as <code>requests&gt;=2.28,&lt;3</code> (PEP 440). The subtle trap: a constraint that looks valid in isolation can become impossible once you add a second package that pins a conflicting range. A good resolver tells you <em>why</em> it failed and which packages caused the conflict — a bad one just says "no solution found".</p>
+      <p>The difference between a <strong>lock file</strong> and a <code>requirements.txt</code> matters here. A lock file is the <em>output</em> of resolution — every package, every transitive dependency, at an exact pinned version, with a hash. A hand-written requirements file is just a set of input constraints; two developers running it on different days may get different resolved versions.</p>
+      <div class="example-block">
+        <div class="example-block-label">lock file excerpt — uv.lock</div>
+        <pre><span class="pre-comment"># pinned by the resolver, not hand-written</span>
+[[package]]
+<span class="pre-key">name</span> = <span class="pre-val">"requests"</span>
+<span class="pre-key">version</span> = <span class="pre-val">"2.31.0"</span>
+<span class="pre-key">requires-dist</span> = [<span class="pre-val">"certifi>=2017.4.17"</span>, <span class="pre-val">"charset-normalizer&lt;4,>=2"</span>, ...]
+<span class="pre-key">wheels</span> = [{<span class="pre-val">url = "https://files.pythonhosted.org/..."</span>, <span class="pre-val">hash = "sha256:58cd2187..."</span>}]</pre>
+      </div>
+      <div class="verdict-row"><span class="vr-tool vr-pip">pip + venv</span><span class="vr-desc">Resolves correctly since pip 21 (resolvelib). No lock file — <code>pip freeze</code> is a manual snapshot, not a generated artifact.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-poetry">Poetry</span><span class="vr-desc">Strong resolver with good conflict messages; generates <code>poetry.lock</code>. Slow on large trees due to eager metadata fetching.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-uv">uv</span><span class="vr-desc">PubGrub-derived algorithm (same family as Cargo). Parallel metadata fetching, aggressive caching. Clear, structured conflict output.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-conda">conda</span><span class="vr-desc">Uses a SAT solver (libsolv). Correct but notoriously slow, and conflict messages are cryptic. <code>environment.yml</code> is not a full lock file.</span></div>
+    </div>
+  </div>
+
+  <!-- 2. Environment isolation -->
+  <div class="accordion" id="acc2">
+    <button class="acc-trigger" onclick="toggleAcc('acc2')">
+      <span class="acc-num">02</span>
+      <span class="acc-title">Environment &amp; build isolation</span>
+      <span class="acc-tags">
+        <span class="acc-tag">r4 — build isolation</span>
+        <span class="acc-tag">r7 — env isolation</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p><strong>Runtime isolation</strong> (venv) and <strong>build isolation</strong> (PEP 517/518) solve different problems but are often confused.</p>
+      <p>A <em>virtual environment</em> is a copy (or symlink tree) of a Python interpreter plus a private <code>site-packages</code> directory. Installing into it doesn't touch your system Python. The mechanism is simple: Python looks for packages in <code>sys.prefix</code>, and a venv changes what <code>sys.prefix</code> points to. <code>venv</code> is in the stdlib since Python 3.3; <code>virtualenv</code> is the older third-party tool that also supports Python 2.</p>
+      <p><em>Build isolation</em> is different. When you run <code>pip install .</code> on a source distribution, pip needs to run the build system (e.g. setuptools, flit, hatchling) to produce a wheel. Without isolation, the build system uses whatever is already installed in your env — including version mismatches. PEP 518 introduced <code>[build-system]</code> in <code>pyproject.toml</code>, which tells pip to install build dependencies into a <em>fresh temporary environment</em> first.</p>
+      <div class="example-block">
+        <div class="example-block-label">pyproject.toml — build isolation declaration</div>
+        <pre>[build-system]
+<span class="pre-key">requires</span>    = [<span class="pre-val">"hatchling"</span>]   <span class="pre-comment"># installed into isolated build env</span>
+<span class="pre-key">build-backend</span> = <span class="pre-val">"hatchling.build"</span></pre>
+      </div>
+      <div class="verdict-row"><span class="vr-tool vr-pip">pip + venv</span><span class="vr-desc">You create and activate the venv manually. Build isolation supported but not the default — needs <code>--isolated</code> or a <code>[build-system]</code> table.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-poetry">Poetry</span><span class="vr-desc">Creates a project-scoped venv automatically on first run. PEP 517 build isolation on by default.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-uv">uv</span><span class="vr-desc"><code>uv sync</code> creates the venv and installs in one step. Build isolation is always on.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-conda">conda</span><span class="vr-desc">conda envs are heavier — they contain a full interpreter + all non-Python deps. Not venvs; don't use PEP 517. conda-build is a separate tool.</span></div>
+    </div>
+  </div>
+
+  <!-- 3. Dependency groups -->
+  <div class="accordion" id="acc3">
+    <button class="acc-trigger" onclick="toggleAcc('acc3')">
+      <span class="acc-num">03</span>
+      <span class="acc-title">Dependency groups &amp; publishing workflow</span>
+      <span class="acc-tags">
+        <span class="acc-tag">r5 — dependency groups</span>
+        <span class="acc-tag">r8 — publishing to PyPI</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p>A package's runtime dependencies (what end users need) are different from its development dependencies (pytest, mypy, black) and optional extras (docs, async support). Conflating them causes two problems: end users get bloated installs, and CI environments become harder to reason about.</p>
+      <p><em>Extras</em> (PEP 508: <code>package[extra]</code>) are optional runtime features the user can opt into. <em>Dependency groups</em> (first-class in Poetry, standardised in PEP 735 for <code>pyproject.toml</code>) are sets of packages that are never shipped — they only exist in the development environment.</p>
+      <p>Publishing is the other side of the same coin: once your project is built, it needs to be packaged as a wheel + sdist and uploaded to PyPI (or a private index). This requires building the distribution artefacts and authenticating against the registry — steps that pip alone doesn't cover.</p>
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="mini-card-title">Poetry — groups</div>
+          <p><code>[tool.poetry.group.dev.dependencies]</code> — installed only in dev, never packaged. <code>poetry publish</code> handles build + upload in one command.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-title">uv — groups</div>
+          <p><code>[dependency-groups]</code> in <code>pyproject.toml</code> (PEP 735). <code>uv publish</code> added in 0.4. <code>uv build</code> produces wheel + sdist.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-title">pip — no groups</div>
+          <p>No native concept. Convention: multiple files (<code>requirements-dev.txt</code>). Extras are supported. Publishing requires separate <code>build</code> + <code>twine</code> invocations.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-title">conda — different model</div>
+          <p>conda packages go to Anaconda or conda-forge — a completely separate infrastructure from PyPI. No concept of dev groups in the Python sense.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Performance -->
+  <div class="accordion" id="acc4">
+    <button class="acc-trigger" onclick="toggleAcc('acc4')">
+      <span class="acc-num">04</span>
+      <span class="acc-title">Resolution &amp; installation performance</span>
+      <span class="acc-tags">
+        <span class="acc-tag">r2 — fast resolution</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p>Performance in package management has two distinct bottlenecks: <em>network I/O</em> (fetching package metadata and wheels from PyPI) and <em>resolver computation</em> (the backtracking search). In practice, network I/O dominates for most real-world installs.</p>
+      <p>pip fetches metadata <em>sequentially</em> — it picks a candidate, fetches its metadata, looks at its dependencies, fetches those, and so on. For a project with 50 transitive dependencies this can mean 50+ serial HTTP round trips. uv parallelises all of these, and caches the results in a global wheel cache keyed by hash — a subsequent install of the same package anywhere on the machine is a local copy, no network involved.</p>
+      <p>The resolver algorithm also matters. pip's <code>resolvelib</code> can do significant backtracking on complex version ranges. uv's PubGrub implementation bounds the backtracking more tightly, and Poetry's resolver — while correct — is known for fetching far more metadata than it strictly needs before making a decision.</p>
+      <div class="example-block">
+        <div class="example-block-label">rough install time comparison — large project (~60 deps)</div>
+        <pre><span class="pre-comment"># cold cache, fresh venv</span>
+<span class="pre-key">pip install -r requirements.txt</span>   <span class="pre-val">~45s</span>
+<span class="pre-key">poetry install</span>                    <span class="pre-val">~30s</span>  <span class="pre-comment">(from lock file)</span>
+<span class="pre-key">uv sync</span>                           <span class="pre-val">~4s</span>   <span class="pre-comment">(cold)</span>
+<span class="pre-key">uv sync</span>                           <span class="pre-val">&lt;0.5s</span> <span class="pre-comment">(warm cache, no changes)</span></pre>
+      </div>
+      <div class="verdict-row"><span class="vr-tool vr-pip">pip + venv</span><span class="vr-desc">Sequential fetches. No global cache by default. Adequate for most use cases, slow in CI without explicit caching.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-poetry">Poetry</span><span class="vr-desc">Faster than pip from a lock file, but slow resolution phase. The <code>--no-root</code> flag helps in CI.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-uv">uv</span><span class="vr-desc">10–100× faster than pip. Parallel network I/O, global wheel cache, zero-copy hardlinks on supported filesystems.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-conda">conda</span><span class="vr-desc">Slow SAT solver. Fetching repodata (full channel metadata) is expensive. <code>mamba</code> (a C++ reimplementation) is much faster.</span></div>
+    </div>
+  </div>
+
+  <!-- 5. Non-Python deps & Python version management -->
+  <div class="accordion" id="acc5">
+    <button class="acc-trigger" onclick="toggleAcc('acc5')">
+      <span class="acc-num">05</span>
+      <span class="acc-title">Non-Python dependencies &amp; Python version management</span>
+      <span class="acc-tags">
+        <span class="acc-tag">r3 — non-Python deps</span>
+        <span class="acc-tag">r10 — Python version mgmt</span>
+      </span>
+      <span class="acc-chevron">▼</span>
+    </button>
+    <div class="acc-body">
+      <p>These two requirements both sit <em>outside</em> the boundary of what pure Python package managers can address — and understanding why clarifies when you actually need conda or pyenv.</p>
+      <p><strong>Non-Python dependencies</strong> are C/C++ shared libraries, CUDA toolkits, Fortran runtimes, R packages, and other OS-level binaries. A Python package like <code>numpy</code> ships a pre-compiled wheel that bundles most C code inside it (thanks to <code>auditwheel</code> / <code>delocate</code>), so you don't need BLAS separately for numpy. But packages like <code>gdal</code>, GPU-accelerated code, or anything that links against system libraries at runtime <em>do</em> need those libraries present on the system — and pip/uv have no idea they exist. conda solves this by maintaining its own binary package ecosystem, separate from PyPI, where packages like <code>cudatoolkit</code> and <code>libgdal</code> are first-class citizens.</p>
+      <p><strong>Python version management</strong> is the question of "which Python is running this code". pip and Poetry assume the answer is already settled — they install <em>into</em> a Python, they don't manage which Python that is. Historically pyenv (or pyenv-win) solved this by compiling multiple Python versions side by side. uv now bundles this natively: <code>uv python install 3.13</code> downloads and installs a managed Python build, and <code>uv run --python 3.11 script.py</code> uses it without any shell gymnastics.</p>
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="mini-card-title">when you need conda</div>
+          <p>CUDA / GPU packages, geospatial (GDAL, PROJ), bioinformatics (samtools, bowtie), anything that links against non-bundled C libraries at runtime.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-title">when uv replaces pyenv</div>
+          <p>Pure Python projects that just need to switch between interpreter versions. <code>uv python install</code> + <code>.python-version</code> file covers most developer workflows.</p>
+        </div>
+      </div>
+      <div class="verdict-row" style="margin-top:14px"><span class="vr-tool vr-pip">pip + venv</span><span class="vr-desc">No Python version management. No non-Python dep support. You need pyenv + system package manager alongside it.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-poetry">Poetry</span><span class="vr-desc">Can use a pyenv-managed Python, but doesn't install Python itself. No non-Python dep support.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-uv">uv</span><span class="vr-desc">Manages Python versions natively. Still no non-Python dep support — for those, use conda or a system package manager.</span></div>
+      <div class="verdict-row"><span class="vr-tool vr-conda">conda</span><span class="vr-desc">Manages both the Python interpreter and non-Python libraries in a unified env. The right tool when you genuinely need the cross-language package graph.</span></div>
+    </div>
+  </div>
+</section>
+<!-- ══ END THEORY ═══════════════════════════════════════════════════ -->
 
 <div class="legend" id="legend"></div>
 
@@ -751,6 +1081,12 @@ function renderLegend() {
        <span class="legend-swatch" style="background:${i.color}"></span>
        <span>${i.label}</span>
      </div>`).join('');
+}
+
+// ── Accordion ─────────────────────────────────────────────────────────
+function toggleAcc(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
 }
 
 // ── Theme ──────────────────────────────────────────────────────────────
