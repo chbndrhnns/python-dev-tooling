@@ -38,6 +38,9 @@ uv run python src/example.py
 # Show installed packages
 uv pip list
 
+# Show outdated packages
+uv tree --outdated
+
 # Upgrade all packages
 uv lock --upgrade && uv sync
 ```
